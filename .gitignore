@@ -21,6 +21,8 @@ sdist/
 var/
 **/me*/*.csv
 **/me*/*.xlsx
+*.gif
+*.jpg
 wheels/
 share/python-wheels/
 *.egg-info/
