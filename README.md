@@ -27,3 +27,6 @@ Data science activities for mechanical engineering undergraduates
     - [Fluids Activity 1 (Open in Google Colab)](https://colab.research.google.com/github/ebilionis/core-me-data-science-activities-public/blob/master/me308/Fluids_01.ipynb)
 
     - [Fluids Activity 2 Solution (Open in Google Colab)](https://colab.research.google.com/github/ebilionis/core-me-data-science-activities-public/blob/master/me308/Fluids_02_sol.ipynb)
+
++ *ME 323*
+    - [Akshay Stress-Strain activity (not completed)](https://colab.research.google.com/github/ebilionis/core-me-data-science-activities-public/blob/master/me323/ME323_01_sol.ipynb)
