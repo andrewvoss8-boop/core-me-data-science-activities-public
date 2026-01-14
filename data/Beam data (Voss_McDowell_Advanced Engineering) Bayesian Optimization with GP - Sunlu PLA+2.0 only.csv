@@ -17,3 +17,9 @@ LHS6,22,14.7,3,0.12,4,4,,15,Gyroid,170,standard,standard,30.54,585.56,19.17,,,Su
 LHS7,22,14.7,2,0.16,6,6,,60,Gyroid,260,standard,standard,55.52,970.02,17.47,,,SunLu PLA+ 2.0
 LHS8,22,14.7,3,0.29,4,4,,35,Gyroid,110,standard,standard,43.21,821.5,19.01,,,SunLu PLA+ 2.0
 LHS9,22,14.7,4,0.22,5,5,,55,Gyroid,140,standard,standard,56.55,1061.36,18.77,,,SunLu PLA+ 2.0
+EI \#1 (avg),22,14.7,5,0.32,6,6,Vertical,20,Gyroid,50,standard,standard,44.76,1014.4675,22.67,,,SunLu PLA+ 2.0
+EI \#2 (avg),22,14.7,5,0.08,6,6,Vertical,5,Gyroid,50,standard,standard,35.3025,736.0775,20.85,,,SunLu PLA+ 2.0
+EI \#3,22,14.7,5,0.32,6,6,Vertical,25,Gyroid,50,standard,standard,46.87,1038.02,22.15,,,SunLu PLA+ 2.0
+UCB \#1,22,14.7,5,0.32,6,6,Vertical,5,Gyroid,50,standard,standard,37.62,967.91,25.73,,,SunLu PLA+ 2.0
+UCB \#2,22,14.7,5,0.08,6,6,Vertical,5,Gyroid,300,standard,standard,34.28,717.66,20.94,,,SunLu PLA+ 2.0
+UCB \#3,22,14.7,5,0.08,1,1,Vertical,5,Gyroid,300,standard,standard,32.02,670.32,20.93,,,SunLu PLA+ 2.0
