@@ -1,0 +1,25 @@
+,Height(mm),Width(mm),Wall Loops,Layer Height(mm),Top Layers,Bottom Layers ,Print orentation,Infill percent,"Infill Geometry * (if it says gyroid but is 100% infill, it switches to rectilinear)",Print speed settings,Print Temperature settings,Cooling Rate,Mass (g),peak force N,Str/w (N/g),Scaled STR/w (to SUNLU PLA+2.0 to BAMBU PLA),Notes,Material
+3,22,14.7,5,0.32,6,6,Vertical,61,Gyroid,50,standard,standard,65.5,1336.74,20.41,,,SunLu PLA+ 2.0
+2,22,14.7,1,0.135,6,6,Vertical,12,Gyroid,158.5,standard,standard,22.87,451.28,19.73,,,SunLu PLA+ 2.0
+1,22,14.7,2,0.295,2,2,Vertical,12,Gyroid,62.7,standard,standard,23.66,379.88,16.06,,,SunLu PLA+ 2.0
+4,22,14.7,2,0.243,4,4,Vertical,91,Gyroid,70.7,standard,standard,77.97,1375.65,17.64,,,SunLu PLA+ 2.0
+5,22,14.7,5,0.228,6,6,Vertical,100,Gyroid,251.8,standard,standard,84.5,1736.8,20.55,,,SunLu PLA+ 2.0
+6,22,14.7,1,0.08,6,6,Vertical,100,Gyroid,188.2,standard,standard,81.84,1425.21,17.41,,,SunLu PLA+ 2.0
+7,22,14.7,2,0.24,4,4,Vertical,64,Gyroid,78.7,standard,standard,59.49,1000.07,16.81,,,SunLu PLA+ 2.0
+8,22,14.7,5,0.097,6,6,Vertical,88,Gyroid,295.7,standard,standard,78.74,1480.93,18.81,,,SunLu PLA+ 2.0
+9,22,14.7,5,0.308,6,6,Vertical,88,Gyroid,155.2,standard,standard,79.73,1536.24,19.27,,,SunLu PLA+ 2.0
+LHS1,22,14.7,4,0.09,1,1,,80,Gyroid,100,standard,standard,71.74,1174.1,16.37,,printing sort of wierd.  First layer issues.  Spaghetti-ish,SunLu PLA+ 2.0
+LHS2,22,14.7,1,0.14,2,2,,70,Gyroid,200,standard,standard,60.89,869.89,14.29,,,SunLu PLA+ 2.0
+LHS3,22,14.7,2,0.19,5,5,,45,Gyroid,290,standard,standard,48.86,839.88,17.19,,,SunLu PLA+ 2.0
+LHS4,22,14.7,5,0.25,2,2,,100,Gyroid,230,standard,standard,80.23,1464.51,18.25,,,SunLu PLA+ 2.0
+LHS5,22,14.7,2,0.31,3,3,,20,Gyroid,60,standard,standard,30.12,514.11,17.07,,,SunLu PLA+ 2.0
+LHS6,22,14.7,3,0.12,4,4,,15,Gyroid,170,standard,standard,30.54,585.56,19.17,,,SunLu PLA+ 2.0
+LHS7,22,14.7,2,0.16,6,6,,60,Gyroid,260,standard,standard,55.52,970.02,17.47,,,SunLu PLA+ 2.0
+LHS8,22,14.7,3,0.29,4,4,,35,Gyroid,110,standard,standard,43.21,821.5,19.01,,,SunLu PLA+ 2.0
+LHS9,22,14.7,4,0.22,5,5,,55,Gyroid,140,standard,standard,56.55,1061.36,18.77,,,SunLu PLA+ 2.0
+EI \#1 (avg),22,14.7,5,0.32,6,6,Vertical,20,Gyroid,50,standard,standard,44.76,1014.4675,22.67,,,SunLu PLA+ 2.0
+EI \#2 (avg),22,14.7,5,0.08,6,6,Vertical,5,Gyroid,50,standard,standard,35.3025,736.0775,20.85,,,SunLu PLA+ 2.0
+EI \#3,22,14.7,5,0.32,6,6,Vertical,25,Gyroid,50,standard,standard,46.87,1038.02,22.15,,,SunLu PLA+ 2.0
+UCB \#1,22,14.7,5,0.32,6,6,Vertical,5,Gyroid,50,standard,standard,37.62,967.91,25.73,,,SunLu PLA+ 2.0
+UCB \#2,22,14.7,5,0.08,6,6,Vertical,5,Gyroid,300,standard,standard,34.28,717.66,20.94,,,SunLu PLA+ 2.0
+UCB \#3,22,14.7,5,0.08,1,1,Vertical,5,Gyroid,300,standard,standard,32.02,670.32,20.93,,,SunLu PLA+ 2.0
