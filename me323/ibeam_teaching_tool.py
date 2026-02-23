@@ -472,16 +472,17 @@ def plot_1d_marginal(gp, X_norm, y, y_mean, recommendations):
 
         mu_r = np.exp(mu_avg + y_mean)
         epistemic_std = np.exp(mu_avg + y_mean) * sig_avg
-        mu_variability = np.exp(mu_avg + y_mean) * mu_std
+        aleatory_std = np.exp(mu_avg + y_mean) * np.sqrt(NOISE_LEVEL)
+        total_std = np.sqrt(epistemic_std**2 + aleatory_std**2)
 
         keys = list(BOUNDS_3D.keys())
         x_vals = x_vals_norm * (BOUNDS_3D[keys[dim]][1] - BOUNDS_3D[keys[dim]][0]) + BOUNDS_3D[keys[dim]][0]
 
         ax.plot(x_vals, mu_r, 'b-', lw=2, label='Marginal mean')
+        ax.fill_between(x_vals, mu_r - 2*total_std, mu_r + 2*total_std,
+                        alpha=0.25, color='orange', label='±2σ aleatory')
         ax.fill_between(x_vals, mu_r - 2*epistemic_std, mu_r + 2*epistemic_std,
-                        alpha=0.3, color='blue', label='±2σ epistemic (avg)')
-        ax.fill_between(x_vals, mu_r - mu_variability, mu_r + mu_variability,
-                        alpha=0.15, color='purple', label='Mean variability')
+                        alpha=0.3, color='blue', label='±2σ epistemic')
 
         X_den = denormalize(X_norm)
         ax.scatter(X_den[:, dim], y, c='red', s=50, alpha=0.6, ec='black', lw=1,
@@ -623,10 +624,14 @@ def plot_1d_global(gp, X_norm, y, y_mean, recommendations):
         mu, sig = gp.predict(X_test, return_std=True)
         mu_r = np.exp(mu + y_mean)
         epistemic_std = np.exp(mu + y_mean) * sig
+        aleatory_std = np.exp(mu + y_mean) * np.sqrt(NOISE_LEVEL)
+        total_std = np.sqrt(epistemic_std**2 + aleatory_std**2)
 
         x_vals = denormalize(X_test)[:, dim]
 
         ax.plot(x_vals, mu_r, 'b-', lw=2, label='Mean prediction')
+        ax.fill_between(x_vals, mu_r - 2*total_std, mu_r + 2*total_std,
+                        alpha=0.25, color='orange', label='±2σ aleatory')
         ax.fill_between(x_vals, mu_r - 2*epistemic_std, mu_r + 2*epistemic_std,
                         alpha=0.3, color='blue', label='±2σ epistemic')
 
@@ -745,10 +750,14 @@ def plot_slice_1d(gp, X_norm, y, y_mean, slice_point_norm, slice_name, slice_idx
         mu, sig = gp.predict(X_test, return_std=True)
         mu_r = np.exp(mu + y_mean)
         epistemic_std = np.exp(mu + y_mean) * sig
+        aleatory_std = np.exp(mu + y_mean) * np.sqrt(NOISE_LEVEL)
+        total_std = np.sqrt(epistemic_std**2 + aleatory_std**2)
 
         x_vals = denormalize(X_test)[:, dim]
 
         ax.plot(x_vals, mu_r, 'b-', lw=2, label='Mean')
+        ax.fill_between(x_vals, mu_r - 2*total_std, mu_r + 2*total_std,
+                        alpha=0.25, color='orange', label='±2σ aleatory')
         ax.fill_between(x_vals, mu_r - 2*epistemic_std, mu_r + 2*epistemic_std,
                         alpha=0.3, color='blue', label='±2σ epistemic')
 
