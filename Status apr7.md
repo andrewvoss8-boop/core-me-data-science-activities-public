@@ -15,7 +15,11 @@ Phase 2: The Data Scientist (the notebook)
 Team member B works the GP notebook independently. Loads the shared training data. Fits a GP with (b, H) inputs. Tunes noise and acquisition. Gets a pure-ML recommendation. This person does not see the hand calc results yet.
 
 Phase 3: The Engineer (merge)
-A and B come together. They code the physics into the ML: add dH and R as features, creating the (b, dH, R) parameterization. They compare all three surfaces. They cross-check the GP recommendation against the spreadsheet. They pick one beam (the "human pick"), set a confidence wager, and present at a CDR checkpoint.
+A and B come together. They code the physics into the ML: specifically, they write the equation for R (stability ratio = Mcr/My) in a code cell the notebook provides a scaffold for. This requires translating the beam section property equations (Iy, J, Ix) into code. It is real work, maybe 20-30 lines, but the notebook gives them the structure and they fill in the physics. This is not the main thing they are evaluated on, but if they get it wrong, the GP with physics features will perform worse than the plain (b,H) GP, and that will show.
+
+For dH: students already found the optimal H(b) curve in their Phase 1 spreadsheet. They can code the optimization in Python, or (simpler) interpolate from their spreadsheet values. Either way, Phase 1 directly feeds Phase 3. This is the payoff for doing Phase 1 well.
+
+They compare all three GP surfaces (physics-only prediction, GP with (b,H), GP with (b,dH,R)). They cross-check the GP recommendation against the spreadsheet. They pick one beam (the "human pick"), set a confidence wager, and present at a CDR checkpoint.
 
 This structure gives each person distinct, meaningful work. Neither role is filler. The merge in Phase 3 is where the real insight happens, and it only works if both people did their job well in Phases 1 and 2.
 
@@ -48,11 +52,31 @@ Option B is probably fine for v1. The worst case is that the baselines perform s
 
 Risk project variant
 
-Adapted from the Beam Redesign for Risk and Reliability Project. Each team draws a random minimum Str/w threshold from a distribution (e.g. Gaussian centered on 28 N/g, std 3). Goal: lightest beam that clears your threshold with high probability. Pop quiz for the whole class if any team's beam fails their threshold.
+Adapted from the Beam Redesign for Risk and Reliability Project. Each team draws a random minimum strength requirement (in Newtons, not Str/w) from a distribution. Goal: design the lightest beam that hits your required strength. The objectives are separated: strength is the constraint, weight is what you minimize. This matters because Str/w already bakes in weight, which hides the tradeoff. With a raw strength floor, students must reason about how much extra mass they can shave while still clearing the threshold with confidence.
 
-This version directly teaches wise risk-taking. You must set a safety margin using the GP's uncertainty bands. Overdesign wastes mass. Underdesign risks failure. The GP helps you thread the needle, but only if you trust it the right amount.
+Pop quiz for the whole class if any team's beam fails their strength requirement. Bonus for lightest beam that clears.
+
+This version directly teaches wise risk-taking. You must set a safety margin using the GP's uncertainty bands. Overdesign wastes mass (costs you on the leaderboard). Underdesign risks failure (costs everyone). The GP helps you thread the needle, but only if you trust it the right amount.
 
 This could be a standalone activity or a follow-on to the "Who Wins?" version. The instructor chooses.
+
+Bayesian fundamentals section (in the notebook, before they touch the GP)
+
+The notebook needs a section early on that builds intuition before students start tuning knobs. Structured as a progression:
+
+1. What is Bayesian reasoning? You have a prior belief. You see data. You update. The posterior is your new belief. One concrete example: "you think this beam will hold 400N based on the equations. You test it and it holds 350N. What do you believe now? What if you test a second one and it holds 380N?" This is Bayes in two sentences.
+
+2. A GP is Bayesian reasoning on steroids. Instead of updating one number, you update an entire surface. The prior is the kernel (how smooth do you think the function is?). The data updates it everywhere, but more where you have data and less where you do not. The uncertainty bands are the model telling you "I am guessing here."
+
+3. What are the different GP setups and when would you choose each? This is where they see the knobs before turning them:
+   - Noise level (alpha): how much do you trust each data point? Low alpha = trust the data, risk overfitting. High alpha = smooth through noise, risk missing real signal.
+   - Parameterization: (b,H) vs (b,dH,R). When does adding physics features help? When does it hurt (if computed wrong)?
+   - Acquisition function: UCB vs EI. UCB has an explicit explore/exploit dial (kappa). EI balances automatically but has xi. When would you want more exploration?
+   - Kernel: Matern vs RBF. How smooth do you think the real function is?
+
+4. How different are the answers? Show them. Run the GP with 3-4 preset configurations on the training data and display the resulting surfaces and recommendations side by side. Students see that the "answer" depends heavily on choices they make. This is the whole point: the model is not an oracle, it is a tool that reflects your assumptions.
+
+This section should take 15-20 minutes. Short text, concrete examples, one or two interactive cells where they toggle a setting and see the surface change. No graded deliverable from this section, just understanding. The graded work comes in Phases 2 and 3.
 
 Noise calibration
 
