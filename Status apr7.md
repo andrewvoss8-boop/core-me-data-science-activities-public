@@ -145,6 +145,11 @@ Core takeaway for students: understand the noise, understand the physics, have i
 Industry and research connections
 - SpaceX-style interview framing: "walk me through your design decisions." Check snubber, mechie.io for example questions.
 - PIGP paper (physics-informed GP): https://arxiv.org/pdf/2507.09968
+- Optional GP reading (Rasmussen and Williams, GPML):
+  - Ch. 1 (high-level intuition, 20-30 min skim)
+  - Ch. 2.1-2.3 (GP regression basics and posterior equations)
+  - Ch. 5.1 (model selection/hyperparameters, ties to kernel + noise choices)
+  - Full book PDF: https://gaussianprocess.org/gpml/chapters/
 
 Lateral-torsional buckling: the physics of R, J, and tipping failure
 
