@@ -8,8 +8,8 @@ Activity structure: "Who Wins?"
 
 Three approaches compete. The point is not that ML+physics wins (students will figure that out). The point is that executing ML+physics well is hard, and that is where the learning happens.
 
-Phase 1: The Physicist (before the notebook opens)
-Each team member A builds a hand calculator in Google Sheets or Desmos: Str/w as a function of b and H, with R and failure criteria visible. They discover: for a given b, there is an optimal H. They plot this curve. They submit a physics-only beam recommendation with written justification. This is a gate. No GP notebook access until Phase 1 is checked off.
+Phase 1: The Physicist (before the notebook opens) -- "Can you beat the machine?"
+Each team member A builds a hand calculator in Google Sheets or Desmos: Str/w as a function of b and H, with R and failure criteria visible. They discover: for a given b, there is an optimal H. They plot this curve. They submit a physics-only beam recommendation with written justification. This is a gate. No GP notebook access until Phase 1 is checked off. If time allows for multiple rounds of testing, the first round is framed as hand calcs vs. the GP: each team's Phase 1 pick and their Phase 2 pick both get printed and tested. Students see directly whether physics or data won, and why. This sets up Phase 3 (merge) with real motivation.
 
 Phase 2: The Data Scientist (the notebook)
 Team member B works the GP notebook independently. Loads the shared training data. Fits a GP with (b, H) inputs. Tunes noise and acquisition. Gets a pure-ML recommendation. This person does not see the hand calc results yet.
@@ -25,7 +25,9 @@ This structure gives each person distinct, meaningful work. Neither role is fill
 
 Printing budget
 
-Teams of 2 (for 80 students: 40 teams, each submitting 1 beam). Instructor pre-prints 3 baseline beams for the whole class: best physics-only, best GP-only (b,H), best GP+physics (b,dH,R). Total: ~43 beams. If that is too many, teams of 4 (20 teams + 3 baselines = 23 beams), with each pair in the team running the notebook independently and then the four of them comparing before submitting one beam.
+Single round: Teams of 2 (40 teams), each submitting 1 beam (the Phase 3 human pick). Instructor pre-prints 3 baseline beams: best physics-only, best GP-only (b,H), best GP+physics (b,dH,R). Total: ~43 beams. Teams of 4 if that is too many (23 beams).
+
+Multi-round (if printing/testing time allows): Round 1 prints each team's Phase 1 pick (hand calc) and Phase 2 pick (GP). Teams see the results, learn where physics or data won and why. Round 2 is Phase 3: they merge, code R into the GP, and submit their final human pick. This doubles the printing but makes the "can you beat the machine?" framing concrete and gives students real feedback before the final decision. Budget: ~120 beams for 40 teams (2 per team in round 1 + 1 in round 2 + 3 baselines). Probably only feasible with teams of 4 (~60 beams).
 
 Differentiation: why smart teams win
 
