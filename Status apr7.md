@@ -115,3 +115,82 @@ Next steps
 3. Re-read beam_lab_student end-to-end as a student. Check flow, cognitive load, broken refs.
 4. Lock rubric: one short block covering reasoning, model skepticism, physics cross-check, wager calibration, team roles.
 5. Instructor one-pager: timing (how many lab periods), what to print, common failure modes, CDR script.
+
+Notebook prompts and content to build
+
+Physics discovery sequence (guide students to catch what the bending calc misses)
+- Start from just 3 data points. Have students calculate predicted failure stress from Ix alone. What goes wrong? The thin-web beam is way weaker than predicted.
+- Why is the thin-web beam so much weaker? Because bending theory assumes the beam stays upright. Thin webs tip sideways first. This is lateral-torsional buckling (LTB).
+- What are J and R? J is the torsional stiffness of the cross-section (resistance to twisting). R = Mcr/My: how close the beam is to tipping before it yields. R > 1 means it yields first (ductile, predictable). R < 1 means it tips first (sudden, catastrophic).
+- Do the failure descriptions in the data cluster with R? (Yes. Low-R beams show twisting/lateral failure modes.)
+- Students must catch: you need more than the bending calc. Bending is necessary but not sufficient.
+- What assumptions does R make? Thin-walled J approximation. Idealized BCs. No imperfections. No fillet contribution unless added.
+
+Noise and uncertainty prompts
+- Characterize noise sources: color-to-color, printer-to-printer, test-to-test, bond quality, porosity. Include screenshot from 3D printer variability paper.
+- Is it safer to assume more noise or less? More noise prevents overfitting (acts as regularizer). Less noise trusts data more, risks fitting to noise. There is a sweet spot.
+- Is it always better to overestimate noise? Mostly yes for safety, but too much smooths away real signal.
+- Are the provided +/- bounds on material flexural strength adequate noise bounds? What alpha do they equate to? (Convert material uncertainty to GP noise in log-space.)
+- How would your noise choice change if consequences of failure were higher?
+- If your boss required 1% chance of failure, how would you design it? (Connect GP uncertainty bands to reliability.)
+
+Real-world messiness prompts
+- The print stops halfway through. Can you keep that print? How do you decide?
+- How would the flat-strength project work? (See risk project variant above.)
+
+Core takeaway for students: understand the noise, understand the physics, have intelligent priors.
+
+Industry and research connections
+- SpaceX-style interview framing: "walk me through your design decisions." Check snubber, mechie.io for example questions.
+- PIGP paper (physics-informed GP): https://arxiv.org/pdf/2507.09968
+
+Lateral-torsional buckling: the physics of R, J, and tipping failure
+
+Geometry: I-beam with web height H (mm), web thickness b (mm), flange width B = 16 mm, flange thickness h = (25 - H)/2 mm. Total height = 25 mm. Span L = 202.3 mm.
+Material: PLA. E = 2.5 GPa. G = E/2.6 ~ 0.962 GPa. Yield strength sigma_y = 76 MPa.
+
+Bending strength (what the simple calc gives you):
+  Ix = b*H^3/12 + 2*(B*h^3/12 + B*h*((H+h)/2)^2)       [strong-axis moment of inertia]
+  y_max = H/2 + h                                          [NA to extreme fiber, in meters]
+  My = sigma_y * Ix / y_max                                [yield moment]
+  Predicted failure load (3-pt): P_yield = 4*My / L
+
+  This calc predicts that tall, thin-webbed beams are strong (big Ix from flanges far apart). It is wrong for thin webs.
+
+Tipping strength (what the simple calc misses):
+  Iy = H*b^3/12 + 2*h*B^3/12                              [weak-axis moment of inertia]
+  J = (H*b^3 + 2*B*h^3) / 3                               [torsional constant, thin-wall approx]
+  Mcr = (C1 * pi / L) * sqrt(E*Iy * G*J)                  [critical moment for LTB]
+
+  C1 = 1.35 for 3-point bending (moment gradient factor).
+
+  This is the moment at which the compression flange kicks sideways and the beam twists and collapses. No warning.
+
+Stability ratio:
+  R = Mcr / My
+
+  R > 1: yielding governs. Ductile. Predictable from Ix alone.
+  R < 1: LTB governs. Sudden. Bending calc overpredicts by a factor of 1/R.
+  R near 1: sensitive to imperfections, BCs, print quality. This is where noise is highest.
+
+Why thin webs break the bending prediction:
+  Iy ~ b^3 (dominated by web contribution for small b).
+  J ~ b^3 (web term dominates for small b).
+  So Mcr ~ b^3.
+  But My ~ Ix, which is dominated by flanges via the parallel axis theorem. My is weakly dependent on b.
+  Result: as b decreases, Mcr drops as b^3 while My barely changes. R drops fast.
+
+  Example: b=1.5mm, H=20mm gives R ~ 0.5. The bending calc says this beam is strong. It will actually fail at about half the predicted load because it tips.
+
+  Example: b=5mm, H=18mm gives R ~ 3. This beam yields cleanly. The bending calc is accurate.
+
+Intuition for J:
+  J measures how hard it is to twist the cross-section. For a thin-walled open section like an I-beam, J is proportional to the sum of (length * thickness^3) for each plate element. A thin web (small b) makes J small, makes the beam easy to twist, makes it vulnerable to LTB. Thickening the web or adding fillets at the web-flange junction increases J and raises R.
+
+What students code in Phase 3:
+  The notebook provides function signatures and constants. Students fill in:
+  1. calc_Iy(H, b, B, h) -> Iy in m^4
+  2. calc_J(H, b, B, h) -> J in m^4
+  3. calc_R(H, b, B, h) -> R (dimensionless), using Mcr/My
+  These use the equations above. All inputs in mm, convert to m internally.
+  If coded correctly, R becomes a powerful GP feature. If coded wrong, the (b,dH,R) GP underperforms (b,H), and students see that immediately in the output.
