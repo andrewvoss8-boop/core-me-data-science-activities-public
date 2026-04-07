@@ -126,7 +126,7 @@ Physics discovery sequence (guide students to catch what the bending calc misses
 - What are J and R? J is the torsional stiffness of the cross-section (resistance to twisting). R = Mcr/My: how close the beam is to tipping before it yields. R > 1 means it yields first (ductile, predictable). R < 1 means it tips first (sudden, catastrophic).
 - Do the failure descriptions in the data cluster with R? (Yes. Low-R beams show twisting/lateral failure modes.)
 - Students must catch: you need more than the bending calc. Bending is necessary but not sufficient.
-- What assumptions does R make? Thin-walled J approximation. Idealized BCs. No imperfections. No fillet contribution unless added.
+- What assumptions does R make? Thin-walled J approximation (overestimates J, use Timoshenko correction). Idealized BCs. No imperfections. No fillets in these designs.
 
 Noise and uncertainty prompts
 - Characterize noise sources: color-to-color, printer-to-printer, test-to-test, bond quality, porosity. Include screenshot from 3D printer variability paper.
@@ -154,7 +154,7 @@ Industry and research connections
 Lateral-torsional buckling: the physics of R, J, and tipping failure
 
 Geometry: I-beam with web height H (mm), web thickness b (mm), flange width B = 16 mm, flange thickness h = (25 - H)/2 mm. Total height = 25 mm. Span L = 202.3 mm.
-Material: PLA. E = 2.5 GPa. G = E/2.6 ~ 0.962 GPa. Yield strength sigma_y = 76 MPa.
+Material: Sunlu PLA+ 2.0 (blue). E = 2.74 GPa (flexural modulus, datasheet). G = E/2.6 ~ 1.05 GPa. Flexural strength sigma_y = 81.8 MPa (datasheet). No fillets in these designs (sharp web-flange junctions).
 
 Bending strength (what the simple calc gives you):
   Ix = b*H^3/12 + 2*(B*h^3/12 + B*h*((H+h)/2)^2)       [strong-axis moment of inertia]
@@ -166,10 +166,13 @@ Bending strength (what the simple calc gives you):
 
 Tipping strength (what the simple calc misses):
   Iy = H*b^3/12 + 2*h*B^3/12                              [weak-axis moment of inertia]
-  J = (H*b^3 + 2*B*h^3) / 3                               [torsional constant, thin-wall approx]
+  J_thinwall = (H*b^3 + 2*B*h^3) / 3                      [thin-wall approx, OVERESTIMATES J]
+  J_exact: use Timoshenko correction beta(t/a) = (1/3)*(1 - 0.63*(t/a) + 0.052*(t/a)^5) per plate element
   Mcr = (C1 * pi / L) * sqrt(E*Iy * G*J)                  [critical moment for LTB]
 
   C1 = 1.35 for 3-point bending (moment gradient factor).
+
+  The thin-wall J formula overestimates J by 5-44% across the dataset (worst for thick webs). This overestimates Mcr by 3-20%. Use the Timoshenko correction for accuracy. See beam_strength_comparison.ipynb for the comparison.
 
   This is the moment at which the compression flange kicks sideways and the beam twists and collapses. No warning.
 
@@ -192,7 +195,9 @@ Why thin webs break the bending prediction:
   Example: b=5mm, H=18mm gives R ~ 3. This beam yields cleanly. The bending calc is accurate.
 
 Intuition for J:
-  J measures how hard it is to twist the cross-section. For a thin-walled open section like an I-beam, J is proportional to the sum of (length * thickness^3) for each plate element. A thin web (small b) makes J small, makes the beam easy to twist, makes it vulnerable to LTB. Thickening the web or adding fillets at the web-flange junction increases J and raises R.
+  J measures how hard it is to twist the cross-section. For an open section like an I-beam, J depends on the sum of (length * thickness^3) for each plate element. A thin web (small b) makes J small, makes the beam easy to twist, makes it vulnerable to LTB. Thickening the web increases J and raises R.
+
+  The common thin-wall formula J = sum(l*t^3)/3 assumes t/l -> 0. For thick elements (b/H > 0.3 or h/B > 0.3), the Timoshenko correction is needed: J_rect = beta * a * t^3, where beta < 1/3 for all finite t/a. The thin-wall formula always overestimates J, overestimates Mcr, and is therefore unconservative for LTB predictions.
 
 What students code in Phase 3:
   The notebook provides function signatures and constants. Students fill in:
