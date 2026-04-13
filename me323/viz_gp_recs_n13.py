@@ -17,11 +17,12 @@ Acquisition values shown:
 Output: viz_gp_recs_n13.png
 """
 
+import io
 import pathlib
+import urllib.request
 import warnings
 
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 import numpy as np
 import pandas as pd
 from scipy.optimize import minimize_scalar
@@ -32,11 +33,20 @@ from sklearn.gaussian_process.kernels import ConstantKernel, Matern
 warnings.filterwarnings("ignore")
 
 REPO = pathlib.Path(__file__).resolve().parents[1]
-SUBSET_CSV = REPO / "data" / "lhs16_subset_bH_even_n13.csv"
-FULL_CSV = REPO / "data" / "I_beam_data_2var.csv"
+GITHUB_DATA = (
+    "https://raw.githubusercontent.com/andrewvoss8-boop/"
+    "core-me-data-science-activities-public/main/data/"
+)
+
+
+def load_csv_from_github(filename: str) -> pd.DataFrame:
+    url = GITHUB_DATA + filename
+    print(f"Downloading {filename} ...")
+    with urllib.request.urlopen(url) as r:
+        return pd.read_csv(io.StringIO(r.read().decode("utf-8")))
 
 # ── physics ──────────────────────────────────────────────────────────
-TOTAL_HEIGHT = 25.0; B_FIXED = 16.0; LENGTH_M = 0.2023
+TOTAL_HEIGHT = 25.0; B_FIXED = 16.0; L_SPAN = 0.2032; L_PRINT = 0.228
 SIGMA_Y = 81.8e6; E_MOD = 2.74e9; G_MOD = E_MOD / 2.6
 C1 = 1.35; DENSITY = 1210; Y_MAX = TOTAL_HEIGHT / 2e3
 
@@ -60,13 +70,13 @@ def calc_J(H,b):
 def calc_mass(H,b):
     H_m,b_m,B_m=H/1e3,b/1e3,B_FIXED/1e3; h=(TOTAL_HEIGHT/1e3-H_m)/2
     if h<=0: return 0
-    return DENSITY*LENGTH_M*(H_m*b_m+2*h*B_m)*1000
+    return DENSITY*L_PRINT*(H_m*b_m+2*h*B_m)*1000
 def calc_P_bend(H,b):
-    return 4*SIGMA_Y*calc_Ix(H,b)/Y_MAX/LENGTH_M
+    return 4*SIGMA_Y*calc_Ix(H,b)/Y_MAX/L_SPAN
 def calc_P_ltb(H,b):
     Iy,J=calc_Iy(H,b),calc_J(H,b)
     if Iy<=0 or J<=0: return 0
-    return 4*(C1*np.pi/LENGTH_M)*np.sqrt(E_MOD*Iy*G_MOD*J)/LENGTH_M
+    return 4*(C1*np.pi/L_SPAN)*np.sqrt(E_MOD*Iy*G_MOD*J)/L_SPAN
 def find_H_opt(b):
     def obj(H):
         h=(TOTAL_HEIGHT-H)/2
@@ -173,7 +183,8 @@ def gt_predict_PP_grid(gp_gt,bds_gt,ym_gt,Pl_grid_2d,Pb_grid_2d,res=60):
 
 # ── main ──────────────────────────────────────────────────────────────
 def main():
-    df_sub=pd.read_csv(SUBSET_CSV); df_full=pd.read_csv(FULL_CSV)
+    df_sub=load_csv_from_github("lhs16_subset_bH_even_n13.csv")
+    df_full=load_csv_from_github("I_beam_data_2var.csv")
     b_sub=df_sub['b_web_mm'].values.astype(float)
     H_sub=df_sub['H_web_mm'].values.astype(float)
     y_sub=df_sub['Str/w N/g'].values.astype(float)

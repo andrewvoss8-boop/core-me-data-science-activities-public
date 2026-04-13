@@ -1,0 +1,20 @@
+---
+description: Course notebooks load CSVs from GitHub raw URLs (Colab/reproducibility)
+alwaysApply: true
+---
+
+# Data loading for Jupyter notebooks (this repo)
+
+When creating or editing `.ipynb` files in this project:
+
+1. **Do not** use relative paths like `../data/foo.csv` or `pd.read_csv("data/...")` as the primary way to load shared course data. That breaks in Colab and diverges from what students run.
+
+2. **Do** load CSVs from the public repo’s raw GitHub URL, e.g.  
+   `https://raw.githubusercontent.com/andrewvoss8-boop/core-me-data-science-activities-public/main/data/<filename>.csv`  
+   using `urllib.request` + `io.StringIO` + `pd.read_csv`, or an equivalent small helper.
+
+3. **Pattern:** define a `GITHUB_DATA` base URL pointing at `.../main/data/`, then `load_csv_from_github("I_beam_data_2var.csv")` (and similar for subset files).
+
+4. Local `data/` in the clone remains the source of truth for git; notebooks should still **read** from GitHub so one notebook file works everywhere without path hacks.
+
+5. Scripts under `me323/` that mirror notebook workflows should use the same GitHub loading when the goal is student-facing reproducibility (optional env override for offline dev is fine if documented).
