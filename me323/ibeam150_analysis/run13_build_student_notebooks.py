@@ -377,6 +377,73 @@ def gov_mode(b, H, sy, k, cs):
 
 print(f"capacity(2,16) = {capacity(2, 16, SY, K_LTB, CS):.0f} N, "
       f"dominant-mode proxy = {gov_mode(2, 16, SY, K_LTB, CS)}")'''),
+key_md('''### KEY-only: how the LTB assumptions move the answer
+
+The historical educational notebook usefully put a basic LTB model beside a
+fixture-aware one. This comparison keeps that idea but uses the current
+`B=10 mm`, `T=18 mm`, `L=150 mm` geometry.
+
+The basic model uses full-span `k=1`, thin-strip $J$, no warping term,
+shear-center loading, and no yield cap. The current branch uses the
+finite-aspect-ratio correction in `section_props`, $C_w$, top-flange loading,
+calibrated `k=0.377`, and a flexural-yield cap.
+
+This is an assumption hierarchy, not a truth hierarchy. The current branch is
+still an idealized stability model, and `k` absorbs fixture and model-form
+effects.'''),
+key_code('''def P_LTB_basic(p):
+    """Basic elastic LTB: k=1, thin-strip J, no warping/load height/yield cap."""
+    Lb = L/1e3
+    J_thin = (p["h"]*p["b"]**3 + 2*p["B"]*p["tf"]**3)/3
+    R_basic = (Lb**2*G*J_thin)/(np.pi**2*E*p["Iy"])
+    Mcr = C1*np.pi**2*E*p["Iy"]/Lb**2 * np.sqrt(R_basic)
+    return 4*Mcr/(L/1e3)
+
+SY_KEY, K_KEY, CS_KEY = 66.5e6, 0.377, 2.25
+b_key = np.linspace(1.25, 7.0, 90)
+H_key = np.linspace(5.0, 16.0, 90)
+BB_key, HH_key = np.meshgrid(b_key, H_key)
+X_key = np.column_stack([BB_key.ravel(), HH_key.ravel()])
+
+ltb_basic, ltb_current, sw_basic, sw_current = [], [], [], []
+for bq, Hq in X_key:
+    pq = section_props(bq, Hq)
+    Pbq = P_bend(pq, SY_KEY)
+    Psq = P_shear(pq, SY_KEY, CS_KEY)
+    Pintq = P_interaction_surrogate(Pbq, Psq)
+    Pbasic = P_LTB_basic(pq)
+    Pcurrent = P_LTB(pq, SY_KEY, K_KEY)
+    ltb_basic.append(Pbasic)
+    ltb_current.append(Pcurrent)
+    sw_basic.append(min(Pintq, Pbasic)/estimated_mass_g(bq, Hq))
+    sw_current.append(min(Pintq, Pcurrent)/estimated_mass_g(bq, Hq))
+
+ltb_basic = np.asarray(ltb_basic)
+ltb_current = np.asarray(ltb_current)
+sw_basic = np.asarray(sw_basic)
+sw_current = np.asarray(sw_current)
+
+fig, axes = plt.subplots(1, 3, figsize=(14, 4.2), sharex=True, sharey=True)
+maps = [
+    (ltb_basic, "basic elastic LTB [N]"),
+    (ltb_current, "current yield-capped LTB [N]"),
+    (ltb_current/ltb_basic, "current / basic LTB load"),
+]
+for ax, (values, title) in zip(axes, maps):
+    cf = ax.contourf(BB_key, HH_key, values.reshape(BB_key.shape), levels=20)
+    fig.colorbar(cf, ax=ax)
+    ax.set_xlabel("b [mm]"); ax.set_ylabel("H_web [mm]"); ax.set_title(title)
+plt.tight_layout(); plt.show()
+
+i_basic = int(np.argmax(sw_basic))
+i_current = int(np.argmax(sw_current))
+print("Basic-assumption optimum:",
+      f"b={X_key[i_basic,0]:.2f}, H_web={X_key[i_basic,1]:.2f}, "
+      f"str/w={sw_basic[i_basic]:.1f} N/g")
+print("Current-assumption optimum:",
+      f"b={X_key[i_current,0]:.2f}, H_web={X_key[i_current,1]:.2f}, "
+      f"str/w={sw_current[i_current]:.1f} N/g")
+print("The exact current class checkpoint uses the finer 0.05 mm grid below.")'''),
 md('''## 7. Diagnose the model before fitting it
 
 The plots below use one common scale. Point color is the predicted dominant
@@ -505,8 +572,8 @@ mode_nom = gov_mode(b_eq, H_eq, SY, K_LTB, CS)
 print(f"EQUATION DESIGN: b={b_eq} mm, H_web={H_eq} mm, predicted {sw_eq:.1f} N/g")
 print(f"dominant-mode proxy at this geometry: calibrated={mode_cal}, nominal={mode_nom}")
 print("CHECKPOINT: b = 1.25, H_web = 13.40, predicted 46.6 N/g.")'''),
-md('''Staff test one common equation beam. Its measured result appears at the
-start of Pre-lab 2.
+md('''Staff query one common equation design through the frozen oracle. The
+returned strength appears at the start of Pre-lab 2.
 
 ## Memo questions
 
@@ -706,7 +773,7 @@ has independent observation scatter $\\epsilon\\sim\\mathcal N(0,r^2)$:
 $$y_*=f(\\mathbf{x})+\\epsilon,\\qquad
 \\sigma_{total}=\\sqrt{\\sigma_{epi}^2+r^2},\\quad r=0.03.$$
 
-The two cuts below cross at the measured equation beam. The inner band is
+The two cuts below cross at the equation-query point. The inner band is
 uncertainty about the latent trend; the outer band predicts one future
 observation. Both are conditional on the kernel, noise, and model form.'''),
 code('''r_log, z_band = 0.03, 2.0
@@ -738,7 +805,7 @@ for col, (title, xplot, Xslice, xlabel, x_anchor) in enumerate(slices):
                     label="latent trend: epistemic uncertainty")
     ax.plot(xplot, median_sw, color="black", label="posterior median")
     ax.scatter(x_anchor, equation_sw, color="red", marker="x", s=70,
-               label="measured equation beam")
+               label="oracle-returned equation query")
     ax.set(title=title, xlabel=xlabel, ylabel="str/w [N/g]")
     ax.grid(alpha=0.25)
     ax = axes[1, col]
@@ -1140,8 +1207,8 @@ Write before computing. Corrections earn credit; unsupported bluffing does not.
    confession? (One sentence each.)
 3. Distinguish epistemic, aleatory, and total predictive uncertainty. Which
    sigma drives explore-vs-exploit, and which belongs in a future-beam bound?
-4. The equation beam measured below its prediction; the GP beam measured above
-   its central prediction. Give one plausible reason for each miss.
+4. The equation query returned below its prediction; the GP query returned
+   above its central prediction. Give one plausible reason for each miss.
 5. Name the four modeling lanes from Submission 1 and the one-line idea of each.'''),
 md('''## 1. Your beam's test result'''),
 code(SRC_CONST + SRC_LOAD + f'''

@@ -284,7 +284,7 @@ def build_lecture2():
     bullets_slide(prs, "Where Pre-lab 1 left you", [
         ("You combined bending and average-web shear into an empirical interaction surrogate, capped it with LTB, and obtained one capacity number per design.", 1),
         ("The parity plot showed where that number holds and where it misses.", 1),
-        ("Your optimizer picked b = 1.25, H_web = 13.4 mm: predicted 46.6 N/g, measured 483 N = 37.64 N/g, calibrated proxy LTB.", 1),
+        ("Your optimizer picked b = 1.25, H_web = 13.4 mm: predicted 46.6 N/g. The frozen oracle returned 483 N = 37.64 N/g on the estimated-mass basis; calibrated proxy LTB.", 1),
         "The physics gave you a point estimate in the region you trust it least. The missing ingredient is a statement of confidence.",
     ], size=20)
 

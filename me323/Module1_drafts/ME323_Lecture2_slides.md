@@ -19,7 +19,7 @@ Today: a model that learns from sparse data and tells you how much it does not k
 
 - You combined bending and average-web shear into an empirical interaction surrogate, capped it with LTB, and obtained one capacity number per design.
 - The parity plot showed where that number holds and where it misses.
-- Your optimizer picked **b = 1.25, H_web = 13.4 mm**: predicted 46.6 N/g, measured 483 N = 37.64 N/g, with calibrated dominant-mode proxy LTB.
+- Your optimizer picked **b = 1.25, H_web = 13.4 mm**: predicted 46.6 N/g. The frozen oracle query returned 483 N = 37.64 N/g on the estimated-mass basis, with calibrated dominant-mode proxy LTB.
 
 The physics gave you a *point estimate* in the region you trust it least. The missing ingredient is a statement of confidence. That is today's tool.
 
