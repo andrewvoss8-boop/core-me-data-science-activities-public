@@ -159,7 +159,7 @@ MUI and EI can point at different next beams. The choice encodes your appetite f
 
 ## Zoom out: spending a test budget
 
-Each print-and-test costs a machine slot, a technician hour, and days of queue. You will get **two** synthetic queries and **one** real print.
+Each print-and-test costs a machine slot, a test engineer hour, and days of queue. You will get **two** synthetic queries and **one** real print.
 
 Optimal experimental design is the batch version of the acquisition question: given N tests, which set teaches the most or finds the best fastest? Choosing the next test *is* the engineering decision.
 

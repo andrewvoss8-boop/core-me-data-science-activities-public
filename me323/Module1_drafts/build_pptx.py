@@ -350,7 +350,7 @@ def build_lecture2():
     ], size=21)
 
     bullets_slide(prs, "Zoom out: spending a test budget", [
-        "Each print-and-test costs a machine slot, a technician hour, and days of queue. You get two synthetic queries and one real print.",
+        "Each print-and-test costs a machine slot, a test engineer hour, and days of queue. You get two synthetic queries and one real print.",
         "Optimal experimental design is the batch version of the acquisition question: given N tests, which set teaches the most or finds the best fastest?",
         "Choosing the next test is the engineering decision.",
     ], size=21)

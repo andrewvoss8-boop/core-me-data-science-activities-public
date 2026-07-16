@@ -218,7 +218,7 @@ code(SRC_CONST + 'print("Constants loaded. Nominal SY =", SY/1e6, "MPa")'),
 md('''## 1. The data
 
 These are fourteen real three-point-bend tests. The beams were printed at
-172 mm and tested on a 150 mm support span. `failure_note` is the technician's
+172 mm and tested on a 150 mm support span. `failure_note` is the test engineer's
 observation, not a model-generated label. `weight_g` is measured; `mass_est_g`
 comes from nominal geometry. They should not be identical. Read the notes and
 the mass discrepancy before fitting anything.'''),
