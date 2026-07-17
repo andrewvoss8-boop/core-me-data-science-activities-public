@@ -1,0 +1,24 @@
+b,H,rep,slot,strength_N,stiff_N_mm,file,printer,weight_g,note,mass_model_g,mass_err_pct
+1.25,13.4,1,7,522.4,99.9,b_1.25_H_13.4_PS_1_7.csv,Pulse 3,12.9,Seperation of the top and bottom flange from the web.,12.83,0.5455962587685104
+1.25,13.4,2,10,500.0,96.7,b_1.25_H_13.4_PS_2_10.csv,Pulse 9,12.7,Horizontal crack propigation along the top (10% of the way through the beam) and bottom part (50% of the way through the beam) of the web.,12.83,-1.0132501948558081
+1.3,12.8,1,5,577.0,108.0,b_1.3_H_12.8_PS_1_5.csv,Pulse 13,13.9,Web fractured vertically to the left of the center fo the beam that also slightly propigated horizontally across the web. Center of the beam had discoloration vertically.,14.04,-0.9971509971509862
+1.3,12.8,2,4,616.5,113.7,b_1.3_H_12.8_PS_2_4.csv,Pulse 2,14.4,Vertical crack propigation up to the top flange.,14.04,2.564102564102577
+1.3,12.8,3,9,576.0,106.1,b_1.3_H_12.8_PS_3_9.csv,Pulse 3,14.0,Seperation of the bottom flange from the web approximately 25% of the way through the beam. Horizontal crack along the top of the web as well.,14.04,-0.2849002849002802
+1.3,12.8,4,6,555.8,105.0,b_1.3_H_12.8_PS_4_6.csv,Pulse 9,13.8,Vertical crack propigation up to the top flange.,14.04,-1.7094017094017033
+1.3,12.8,5,10,575.6,108.8,b_1.3_H_12.8_PS_5_10.csv,Pulse 12,13.9,Vertical crack propigation up to the top flange.,14.04,-0.9971509971509862
+1.4,10.4,0,4,724.1,130.0,b_1.4_H_10.4_PS_4.csv,Pulse 13,18.4,Vertical crack propigation up to the top flange. Top flange and web partially seperated toward the center of the beam.,18.52,-0.6479481641468721
+1.44,13.39,1,8,482.4,105.4,b_1.44_H_13.34_PS_1_8.csv,Pulse 3,13.4,Seperation of the bottom flange from the web. Top flange seperated from the web about 50% of the way through the beam.,13.37,0.2243829468960401
+1.44,13.39,2,9,515.6,100.4,b_1.44_H_13.39_PS_2_9.csv,Pulse 9,13.1,"Discoloration on the bottom part of the beam, flipped on test stand during failure.",13.37,-2.0194465220643165
+1.5,5.0,0,2,796.2,170.9,b_1.5_H_5_PS_2.csv,Pulse 2,28.4,Seperation of the top flange from the web.,28.12,0.9957325746799306
+1.75,15.8,0,7,336.7,72.4,b_1.75_H_15.8_PS_7.csv,Pulse 9,9.9,Beam slowly twisted along the supports. Test was stopped before failure criteria was met.,10.15,-2.463054187192115
+3.25,15.1,0,12,543.6,104.2,b_3.25_H_15.1_PS_12.csv,Pulse 12,15.7,Vertical crack propigation initiated from the bottom of the beam.,15.97,-1.690670006261752
+3.55,7.5,0,6,936.0,169.7,b_3.55_H_7.5_PS_6.csv,Pulse 3,26.8,Vertical crack propigation up to the top flange.,26.92,-0.4457652303120341
+3.7,11.1,0,3,821.5,153.0,b_3.7_H_11.1_PS_3.csv,Pulse 13,22.3,Complete vertical fracture across the center of the beam.,22.51,-0.9329187027987573
+4.0,13.5,0,8,685.6,131.3,b_4_H_13.5_PS_8.csv,Pulse 9,19.9,Vertical crack propigation up to the top flange.,20.25,-1.728395061728405
+4.2,15.6,0,1,588.5,112.9,b_4.2_H_15.6_PS_1.csv,Pulse 13,17.8,Vertical crack propigation up to the top flange.,18.31,-2.785363189513912
+4.6,13.1,0,11,753.1,139.5,b_4.6_H_13.1_PS_11.csv,Pulse 12,22.1,Vertical crack propigation initiated from the bottom of the beam.,22.34,-1.074306177260509
+4.85,14.4,0,3,736.7,141.4,b_4.85_H_14.4_PS_3.csv,Pulse 2,21.4,Vertical crack propigation initiated from the bottom of the beam.,21.64,-1.1090573012939142
+5.95,6.3,0,2,1020.7,181.2,b_5.95_H_6.3_PS_2.csv,Pulse 13,31.4,Complete vertical fracture across the center of the beam.,31.59,-0.601456157011715
+6.4,10.3,0,11,973.4,173.2,b_6.4_H_10.3_PS_11.csv,Pulse 12,29.2,Complete vertical fracture across the center of the beam.,29.23,-0.10263427984947837
+7.0,10.5,0,5,921.1,174.4,b_7_H_10.5_PS_5.csv,Pulse 3,29.7,Vertical crack propigation up to the top flange.,30.37,-2.206124464932502
+7.0,16.0,0,1,881.2,157.5,b_7_H_16_PS_1.csv,Pulse 2,27.6,Vertical crack propigation up to the top flange.,26.99,2.2600963319748146
