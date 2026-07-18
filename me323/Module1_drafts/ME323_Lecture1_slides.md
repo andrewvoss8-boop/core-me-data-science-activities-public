@@ -129,7 +129,7 @@ The elastic critical moment (Timoshenko elastic-stability theory, in the Eurocod
 
 $$M_{cr}=C_1\frac{\pi^2 E I_y}{L_b^2}\Big[\sqrt{R}-C_2 z_g\Big]$$
 
-The next four slides open up every symbol in this equation, because this is the mode that decides your optimum and the one built on the most assumptions.
+The next four slides open up every symbol in this equation, because this is the mode that decides your optimum and the one built on the most assumptions. You will not re-derive any of it: `P_LTB` arrives pre-coded in Pre-lab 1. The goal here is to read that code knowing what each symbol assumes.
 
 <!-- PLACEHOLDER (new campaign): 3-second clip or photo sequence of a tall thin-web beam tipping sideways under load. The old campaign logged one on video ("LTB after yield"); re-shoot on the module fixture. -->
 
@@ -256,4 +256,4 @@ In `ME323_Module1_Prelab1_FailureModes`:
 - compare dominant-mode proxies with measured strengths and failure notes, then calibrate $(\sigma_y, k, \tau_i)$,
 - optimize strength-to-weight.
 
-The beam you find there is one of your two ground-truth queries later. Bring questions.
+The design you find there becomes one of the class's two ground-truth queries later — the pre-lab explains how those queries work. Bring questions.

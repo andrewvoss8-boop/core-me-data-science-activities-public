@@ -199,6 +199,7 @@ def build_lecture1():
         "A tall, thin-flanged beam does not yield in place. It rolls sideways and twists at a load below its bending strength — a stability failure, not a strength one.",
         "The elastic critical moment, in the Eurocode C1/C2 closed form (Timoshenko elastic-stability theory).",
         "The next four slides open up every symbol, because LTB decides your optimum and rests on the most assumptions.",
+        "You will not re-derive any of it: P_LTB arrives pre-coded in Pre-lab 1. The goal is to read that code knowing what each symbol assumes.",
     ])
     eq_slide(prs, "The critical moment, term by term", "eq/ltb_R.png", [
         "Under the root, three effects trade against each other:",
@@ -267,7 +268,7 @@ def build_lecture1():
         ("code flexural yield and the junction shear-flow separation check (start tau_i at the bulk guess 43.9 MPa),", 1),
         ("compare dominant-mode proxies with measured strengths and failure notes, then calibrate (sigma_y, k, tau_i),", 1),
         ("optimize strength-to-weight.", 1),
-        "The beam you find there is one of your two ground-truth queries later. Bring questions.",
+        "The design you find there becomes one of the class's two ground-truth queries later — the pre-lab explains how those queries work. Bring questions.",
     ], size=20)
 
     out = os.path.join(HERE, "ME323_Module1_Lecture1.pptx")
@@ -285,7 +286,7 @@ def build_lecture2():
     bullets_slide(prs, "Where Pre-lab 1 left you", [
         ("You coded three capacity branches — flexural yield, junction shear-flow separation, LTB — calibrated (sigma_y, k, tau_i), and took the minimum: one capacity number per design.", 1),
         ("The parity plot showed where that number holds and where it misses.", 1),
-        ("Your optimizer picked b = 1.25, H_web = 13.2 mm: predicted 47.8 N/g. The frozen oracle returned 515.6 N = 39.09 N/g on the estimated-mass basis — and there the bend and LTB capacities tie within ~1%, so the 'bend' proxy is a knife-edge call.", 1),
+        ("Your optimizer picked b = 1.25, H_web = 13.2 mm: predicted 47.8 N/g. Staff queried the oracle — a frozen model fit to a prior campaign of real bend tests, standing in for the testing machine — and it returned 515.6 N = 39.09 N/g on the estimated-mass basis. There the bend and LTB capacities tie within ~1%, so the 'bend' proxy is a knife-edge call.", 1),
         "The physics gave you a point estimate sitting exactly on a mode boundary — the region you trust it least. The missing ingredient is a statement of confidence.",
     ], size=20)
 
@@ -336,7 +337,7 @@ def build_lecture2():
     ], size=20)
 
     image_slide(prs, "Explore vs exploit", "figures/fig_explore_exploit.png", eq="eq/mui.png",
-                source="Exploit: test where the posterior median is highest. Explore: test where epistemic uncertainty is widest. MUI uses latent log space.",
+                source="Exploit: test where the posterior median is highest. Explore: test where epistemic uncertainty is widest. MUI (maximum upper interval) uses latent log space.",
                 max_h=3.7)
 
     image_slide(prs, "The loop: Bayesian optimization", "figures/gif_bo_mui.gif",
@@ -351,7 +352,7 @@ def build_lecture2():
     ], size=21)
 
     bullets_slide(prs, "Zoom out: spending a test budget", [
-        "Each print-and-test costs a machine slot, a test engineer hour, and days of queue. You get two synthetic queries and one real print.",
+        "Each print-and-test costs a machine slot, a test engineer hour, and days of queue. The class gets two oracle queries — answered by the frozen staff model, cheap because the prior campaign already paid for that information — and each group gets one real print.",
         "Optimal experimental design is the batch version of the acquisition question: given N tests, which set teaches the most or finds the best fastest?",
         "Choosing the next test is the engineering decision.",
     ], size=21)
@@ -362,7 +363,7 @@ def build_lecture2():
 
     bullets_slide(prs, "The activity from here", [
         ("Pre-lab 2: fit the GP, write MUI (and EI), work the noise assumption, find the GP-recommended beam.", 1),
-        ("Two queries: test your equation design and your GP design against the ground-truth model. Only two.", 1),
+        ("Two queries: the class equation design and the class GP design go to the oracle — the same two beams for everyone. Only two.", 1),
         ("Submission 1: combine physics, GP, and the two new points; pick the beam you will print; defend it in the memo.", 1),
         ("Print, test, reflect, redesign: Submission 2 folds your own test result back into the model and asks what it changes.", 1),
     ], size=21)
@@ -373,7 +374,7 @@ def build_lecture2():
         ("write both MUI and EI,", 1),
         ("refit under 1% / 3% / 10% noise and note what moves,", 1),
         ("record the locked class design: b = 1.44 mm, H_web = 13.20 mm, posterior median 38.2 N/g.", 1),
-        "That beam is your second ground-truth query. Bring your rationale, not just the number.",
+        "That beam is the class's second oracle query. Bring your rationale, not just the number.",
     ], size=20)
 
     out = os.path.join(HERE, "ME323_Module1_Lecture2.pptx")

@@ -76,7 +76,12 @@ URL = ("https://raw.githubusercontent.com/andrewvoss8-boop/"
 try:
     df = pd.read_csv(URL); print("loaded from GitHub")
 except Exception:
-    df = pd.read_csv("student_beams_B10_L150.csv"); print("loaded local copy")
+    try:
+        df = pd.read_csv("student_beams_B10_L150.csv"); print("loaded local copy")
+    except FileNotFoundError as e:
+        raise FileNotFoundError(
+            "no internet and no local copy -- download student_beams_B10_L150.csv "
+            "from the course page into this notebook's folder and rerun") from e
 df = df.rename(columns={"b_mm": "b", "H_web_mm": "H"})
 
 def estimated_mass_g(b, H):
@@ -212,8 +217,10 @@ The design objective uses estimated mass from nominal geometry:
 $$A=bH+B(T-H), \\qquad m_{est}=K_{mass}A.$$
 
 Measured mass retains print variation, dimensional error, and scale error.
-Estimated mass keeps the optimization objective available before printing.
-Keep both. Frozen class rankings use `strength_N / mass_est_g`.'''),
+Estimated mass exists for every candidate design, including the ones nobody has
+printed — it is the only denominator an optimizer can use to rank un-printed
+beams, and it keeps print luck out of the objective. Keep both, and never mix
+them silently. Frozen class rankings use `strength_N / mass_est_g`.'''),
 code('''df["str_to_weight"] = ____    # >>> FILL IN: strength divided by estimated mass
 df["str_to_weight_measured_mass"] = df.strength_N / df.weight_g
 top = df.sort_values("str_to_weight", ascending=False)
@@ -528,6 +535,9 @@ print(f"calibrated: sigma_y = {SY_CAL/1e6:.1f} MPa, k = {K_CAL:.3f}, "
       f"tau_i = {TAU_CAL/1e6:.2f} MPa")
 print(f"CHECKPOINT: sigma_y = «CAL_SY_MPA» MPa, k = «CAL_K_V», tau_i = «CAL_TAU_MPA» MPa, "
       f"error = «MAPE_CAL»% MAPE. Your error: {mape_cal:.1f}%.")
+print("Within about 1% of these values counts as matching -- Nelder-Mead and")
+print("library versions wobble the last digit. Farther off than that, check")
+print("your work or talk to a TA.")
 print("tau_i lands FAR below the 43.9 MPa bulk guess: the bond along the")
 print("printed layer lines, not the bulk plastic, is what fails. That number")
 print("exists in no handbook.")'''),
@@ -556,10 +566,26 @@ print("mode capacities at the optimum, calibrated: "
       f"P_sep={P_sep(p_eq, TAU_CAL):.0f} N, "
       f"P_LTB={P_LTB(p_eq, SY_CAL, K_CAL):.0f} N")
 print("CHECKPOINT: b = «EQ_B_CK», H_web = «EQ_H_CK», predicted «EQ_PRED» N/g.")'''),
-md('''Staff query one common equation design through the frozen oracle. The
-returned strength appears at the start of Pre-lab 2.
+md('''### What happens to this design
+
+Staff query it against the **oracle**: a statistical model fit to a large prior
+campaign of real print-and-bend tests on this exact geometry and fixture, then
+frozen before the course began. The oracle stands in for the testing machine so
+the class's limited print-and-test budget is not spent re-testing the same two
+class-common designs — the strength it returns is its prediction of what a real
+test would measure, not a new broken beam. The beam that does get printed and
+broken for real is the one your group commits to in Submission 1.
+
+Because the data, constants, and grid above are fixed, every group's optimizer
+lands on this same design. The query is therefore one shared data point for the
+whole class; the returned strength appears at the start of Pre-lab 2. Your own
+choices take over in Submission 1.
 
 ## Memo questions
+
+Answer these in markdown cells at the end of this notebook. The answers stay
+here — this notebook is turned in alongside Submission 1 and the answers are
+graded with it. Do not re-answer them in the Submission 1 memo.
 
 1. Compare measured and estimated masses. Name one physical reason they differ,
    and explain why the pre-print optimizer still uses estimated mass.
@@ -609,6 +635,12 @@ The equation beam from Pre-lab 1, `(b={EQ_B}, H_web={EQ_H})`, was predicted at
 estimated-mass basis**. It is the best of the first 15 beams, beating the
 original best-of-14 value of «BEST_SW2» N/g. The returned ratio is
 «EQ_BELOW_PCT»% below the equation prediction.
+
+Remember where that number comes from: the **oracle**, the staff model fit to
+a prior campaign of real bend tests that stands in for the testing machine
+(Pre-lab 1's closing note). Nothing new was printed. Treat {EQ_N} N as one more
+data point that carries the campaign's scatter, not as truth — the beam that is
+physically printed and broken is the one your group designs in Submission 1.
 
 This notebook uses only data-driven, vanilla GPs. You will compare reasonable
 setup choices, separate epistemic uncertainty from observation noise, use MUI
@@ -738,6 +770,8 @@ ls_mm = ls_std*fsd
 print("fitted official kernel:", gp.kernel_)
 print(f"physical length scales: b={ls_mm[0]:.2f} mm, H_web={ls_mm[1]:.2f} mm")
 print("checkpoint kernel: roughly «P2_KERNEL»")
+print("(Optimizer restarts and sklearn versions wobble these constants in the")
+print(" last digits; length scales within a few percent count as matching.)")
 
 fig, ax = plt.subplots(1, 2, figsize=(12, 4.6))
 for a, Z, title in [(ax[0], MU, "posterior median str/w [N/g]"),
@@ -762,6 +796,12 @@ has independent observation scatter $\\epsilon\\sim\\mathcal N(0,r^2)$:
 
 $$y_*=f(\\mathbf{x})+\\epsilon,\\qquad
 \\sigma_{total}=\\sqrt{\\sigma_{epi}^2+r^2},\\quad r=0.03.$$
+
+A standard deviation in log space reads as a relative error: $\\sigma=0.03$
+means roughly ±3% multiplicatively, so $r=0.03$ *is* the class 3% noise
+assumption written in log units. $\\sigma_{epi}$ shares those units but is a
+different quantity — uncertainty about the trend itself, not the scatter of
+one test.
 
 The two cuts below cross at the equation-query point. The inner band is
 uncertainty about the latent trend; the outer band predicts one future
@@ -920,9 +960,12 @@ print(f"EI xi=.01: b={x_ei[0]:.2f}, H_web={x_ei[1]:.2f}")
 print("EI checkpoint: b=«EI_B», H_web=«EI_H».")'''),
 md('''## 7. Final filter: the one class GP design
 
-You explored alternatives, but the class query must be reproducible. The final
-rule is fixed: official ARD-RBF model, 3% noise, MUI with $\\psi=1$, the stated
-grid, and the tested-point exclusion rule.'''),
+You explored alternatives, but the class query must be reproducible: locking
+one recipe is what makes the second oracle query a single shared data point
+that every group can compare. The final rule is fixed: official ARD-RBF model,
+3% noise, MUI with $\\psi=1$, the stated grid, and the tested-point exclusion
+rule. Your own settings take over in Submission 1, where the design — and the
+print — are yours.'''),
 code(f'''x_class, mean_class, sigma_class, _ = recommend_mui(1.0)
 print(f"LOCKED CLASS DESIGN: b={{x_class[0]:.2f}} mm, H_web={{x_class[1]:.2f}} mm")
 print(f"posterior median={{mean_class:.1f}} N/g, epistemic sigma_log={{sigma_class:.3f}}")
@@ -960,6 +1003,10 @@ print(f"official MUI psi=1 recommendation: {tuple(np.round(x_class, 2))}")
 print(f"regularized Matern recommendation: {tuple(np.round(x_matern, 2))}")
 print("This comparison changes kernel and length-scale regularization; it is not the class recommendation.")'''),
 md(f'''## Memo questions
+
+Answer these in markdown cells at the end of this notebook — they are graded
+with the notebook when it is turned in alongside Submission 1, and they do not
+go in the Submission 1 memo.
 
 1. Cite one region where epistemic uncertainty changes the action relative to
    maximizing the posterior median alone. Use the median, epistemic-sigma, and
@@ -1018,10 +1065,13 @@ result «GP_VS_PRED_TEXT». Sit with that pair of facts: the
 winning beam came from the prediction that missed by «EQ_BELOW_PCT»%, and the
 well-calibrated model got beaten. One test settles less than it seems to.
 
-Fold both query results into the data, build a model your way, and commit to a
-third design: the beam your group will print. Do not call either common query
-beam your Submission 1 design unless you deliberately choose those coordinates.
-The final answer is a decision defended in the memo.'''),
+Both returned strengths came from the staff oracle — the model fit to the
+prior test campaign that stands in for the testing machine — so nothing has
+been printed yet. That changes here: fold both query results into the data,
+build a model your way, and commit to a third design, the beam your group will
+actually print and break. Do not call either common query beam your
+Submission 1 design unless you deliberately choose those coordinates. The
+final answer is a decision defended in the memo.'''),
 md('''## Your knobs
 
 This notebook hands you a working pipeline, but every modeling decision in it
@@ -1041,7 +1091,12 @@ Two kinds of knobs, two ways to choose. Architecture and kernel make claims
 the data can score, and the leave-one-out table in §2 is their referee. Noise
 and ψ make claims the data *cannot* score: no table can tell you the rig's
 repeatability or how much risk your group should carry. Those you defend in
-the memo with physical reasoning and stated values.'''),
+the memo with physical reasoning and stated values.
+
+One more thing, since this module keeps saying there is no right answer: that
+is a claim about the knobs, not about the grade. The grade follows the
+defense, not the distance from the defaults — a defended default recipe
+outscores an arbitrary exotic one.'''),
 code(SRC_CONST + SRC_LOAD + f'''
 new = pd.DataFrame([
     dict(beam_id=15, b={EQ_B}, H={EQ_H}, strength_N={EQ_N},
@@ -1105,9 +1160,12 @@ What each lane assumes:
 beam it did not see, sixteen times over — a dress rehearsal for predicting
 your un-printed design. Low LOO RMSE is real evidence. It is also 16-point
 evidence: a lane that wins by 0.3 N/g is a coin flip; a lane that loses by
-3 N/g is genuinely worse. You may overrule the table if you argue the case
-(for instance: "D wins LOO, but I am designing near the thin-web region where
-its physics is blind to separation").'''),
+3 N/g is genuinely worse. Following the winner is a defensible move when you
+argue it (for instance: "D wins under both kernels, and my candidate sits
+inside the tested region, where its physics is anchored by data"). So is
+overruling it (for instance: "D wins LOO, but I am designing near the thin-web
+region where its physics is blind to separation"). Either can earn full
+credit; a lane chosen with no argument cannot.'''),
 code('''from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import ConstantKernel as C, RBF, Matern
 
@@ -1201,7 +1259,8 @@ for kernel in ("RBF", "Matern"):
         print(f"    {lane}: {np.sqrt(np.mean(np.array(errs)**2)):.2f} N/g")
 print("\\nCHECKPOINT (RBF):    roughly «LOO_RBF».")
 print("CHECKPOINT (Matern): roughly «LOO_MATERN».")
-print("If your numbers are far off, check your work or talk to a TA.")'''),
+print("Within about 0.1 N/g of these counts as matching -- library versions")
+print("wobble the fits. Off by 0.5 N/g or more, check your work or talk to a TA.")'''),
 md('''## 3. Rebuild the maps with your knobs
 
 Three knobs live in the next cell. Set them, refit on all 16 beams, and look
@@ -1230,10 +1289,14 @@ NOISE_PCT percent." Small values force the fit to thread every data point —
 every wiggle is treated as real shape. Large values let it smooth through
 them — much of the wiggle is print luck and rig luck. No cell in this
 notebook can compute the right value: the 16 beams contain no repeated
-geometry, so the data cannot measure its own error bar. This knob is an
-assumption. The honest move is to state your number, and to know what it did
-to your answer — try 1 and 8 and watch where the recommendation moves before
-you commit.'''),
+geometry, so the data cannot measure its own error bar. The best physical
+anchor available is the staff campaign behind the oracle: four repeat prints
+of one design spanned 548.6 to 566.1 N — about a 3% spread — and pooled
+across every repeated geometry there, the scatter ran near 4%, with
+print-session structure inside it. That brackets a defensible range; it does
+not pick your number. This knob is an assumption. The honest move is to state
+your number, and to know what it did to your answer — try 1 and 8 and watch
+where the recommendation moves before you commit.'''),
 code('''CHOICE    = "A plain"   # <<< your lane:   "A plain" | "B strength" | "C features" | "D residual"
 KERNEL    = "RBF"       # <<< your smoothness assumption: "RBF" | "Matern"
 NOISE_PCT = 3           # <<< your assumed repeatability, percent
@@ -1261,14 +1324,18 @@ The maps give you two numbers at every candidate design: `MU`, the predicted
 str/w, and `STD`, how unsure the model is there (log units). An *acquisition
 rule* collapses the two maps into one pick. Two rules are wired in:
 
-- **`ACQ = "MUI"` — maximum upper improvement.**
+- **`ACQ = "MUI"` — maximum upper interval, as in Pre-lab 2.**
   `score = log(MU) + psi*STD`: judge every design by its optimistic upper
   bound. `psi` is the explore–exploit dial, and it is yours to set.
   `psi = 0` ignores uncertainty and picks the best posterior median — pure
   exploitation. `psi = 1` credits each design one sigma of upside. Large
   `psi` chases the unexplored corners of the map. There is no correct value:
   ψ prices how much a *chance* at a better beam is worth to your group
-  against a safe, good one.
+  against a safe, good one. A priced ψ sounds like: "ψ = 0.5 — we get one
+  print, the incumbent already sits at {EQ_SW} N/g, and a gamble that loses
+  leaves us nothing, so upside is worth half a sigma to us." An unpriced one
+  sounds like: "ψ = 1, because that is the default." Any value can earn full
+  credit; only the second kind of sentence cannot.
 - **`ACQ = "EI"` — expected improvement.** Averages the improvement over the
   incumbent best tested beam ({EQ_SW} N/g) under the model's own uncertainty.
   No dial: it trades explore against exploit automatically, and it goes to
@@ -1293,10 +1360,10 @@ that; you are also free to beat it. Say why either way.
 One deliberate difference from Pre-lab 2: the class-query steps *excluded*
 already-tested designs, because a shared oracle query spent on a known point is
 wasted. Your print is yours to spend, so the default recipe above applies no
-such exclusion«DEF_NEAR_TXT». If you choose a design within the Pre-lab 2
-exclusion radius (|Δb| < 0.15, |ΔH_web| < 0.30) of a tested beam, say in the
-memo what a near-replicate print buys you — verifying a suspiciously good
-result is a legitimate answer; sleepwalking into a repeat is not.'''),
+such exclusion«DEF_NEAR_TXT». **If your pick lands within the Pre-lab 2
+exclusion radius (|Δb| < 0.15 mm, |ΔH_web| < 0.30 mm) of a tested beam, the
+memo must say what a near-replicate print buys you.** Verifying a suspiciously
+good result is a legitimate answer; sleepwalking into a repeat is not.'''),
 code('''from scipy.stats import norm
 
 ACQ = "MUI"          # <<< your rule: "MUI" | "EI"
@@ -1318,6 +1385,10 @@ print(f"  posterior median {MU[i]:.1f} N/g,  epistemic sigma_log {STD[i]:.3f},  
       f"calibrated physics {capacity(b_final, H_final, SY_CAL, K_CAL, TAU_CAL)/estimated_mass_g(b_final, H_final):.1f} N/g")
 print(f"  physics mode there: {gov_mode(b_final, H_final, SY_CAL, K_CAL, TAU_CAL)}")'''),
 md('''## Memo
+
+Write it in markdown cells below this one, answering these four prompts in
+order — about half a page in total. It covers only these prompts; the pre-lab
+questions stay in their own notebooks.
 
 1. The two class beams: use the generated scoreboard percentages, with their
    stated denominators. What does each miss reveal, and which miss is costlier
@@ -1371,7 +1442,7 @@ md('''# Submission 2: Reflection and the Lightweight Challenge
 
 <img src="https://raw.githubusercontent.com/andrewvoss8-boop/core-me-data-science-activities-public/main/me323/Module1_drafts/figures/I_beam_dimensions.jpg" alt="I-beam dimensions" width="220">
 
-Your beam has been printed and tested. Three jobs here:
+Your beam has been printed and tested. Four jobs here:
 
 1. Recall the module's ideas from memory.
 2. Reflect on your measured result against your recorded prediction.
@@ -1383,8 +1454,9 @@ Write before computing. Corrections earn credit; unsupported bluffing does not.
 
 1. Name the three modeled capacity branches and explain how the dominant-mode
    proxy is assigned. Which region of the (b, H_web) box does each own?
-2. Pre-lab 1 calibrated σ_y, k, and τ_i. For each: was it a correction or a
-   confession? (One sentence each.)
+2. Pre-lab 1 calibrated σ_y, k, and τ_i. For each, one sentence: was the
+   fitted value a correction to a handbook number, or the measurement of a
+   property no handbook lists?
 3. Distinguish epistemic, aleatory, and total predictive uncertainty. Which
    sigma drives explore-vs-exploit, and which belongs in a future-beam bound?
 4. The equation query returned below its prediction; the GP query returned
@@ -1430,12 +1502,12 @@ if None not in (b_mine, H_mine, P_mine, mass_measured_mine,
     print(f"posterior-predictive interval: [{{pred_lo_sw:.1f}}, {{pred_hi_sw:.1f}}] N/g")
     print("inside recorded model +/-2 sigma interval:", inside_2sigma)
     print(f"class scoreboard: best tested so far {{df.str_to_weight.max():.1f}} N/g")'''),
-md('''The model was trained on strength divided by estimated mass, so the interval
-comparison uses that same denominator. Report the measured-mass ratio too, but
-do not compare ratios with different denominators as if they were the same
-quantity. If the result lies outside the interval, distinguish model-form error,
-print-to-print variability, and an unmodeled failure mechanism. One test does
-not identify which.'''),
+md('''The model was trained on strength divided by estimated mass, so **the
+interval check uses that same denominator**. Report the measured-mass ratio
+too, but **never compare ratios with different denominators** as if they were
+the same quantity. If the result lies outside the interval, distinguish
+model-form error, print-to-print variability, and an unmodeled failure
+mechanism. One test does not identify which.'''),
 md('''## 2. The lightweight challenge: hold 700 N, weigh as little as possible
 
 Same 16 beams, same tools — different objective. Now strength is a
@@ -1449,8 +1521,10 @@ P_{lo}(b,H)=e^{\\mu_{\\ln P}(b,H)-2\\sigma_{total}(b,H)}
 \\ge 700\\text{ N}.$$
 
 Among designs that pass, take the lightest. **FILL IN** the two marked lines.
-(You may argue a different z than 2 in your memo — that is a risk posture,
-not a math fact.)'''),
+You may argue a different z than 2 in your memo — that is a risk posture, not
+a math fact. Padding is judged the same way: extra grams beyond the z = 2
+design are fine when the memo prices them (a larger z, a named model-form
+worry) and cost credit when the only defense is a bare safety factor.'''),
 code(SRC_PHYS_FULL + f'''
 SY_CAL, K_CAL, TAU_CAL = {CAL_SY:.3e}, {CAL_K}, {CAL_TAU:.3e}
 P_TARGET = 700.0
@@ -1508,7 +1582,8 @@ print(f"  calibrated-physics check: {{capacity(b_lt, H_lt, SY_CAL, K_CAL, TAU_CA
       f"mode {{gov_mode(b_lt, H_lt, SY_CAL, K_CAL, TAU_CAL)}}")
 print("\\nCHECKPOINT (class-default model): you should arrive at "
       "b = «LT_B», H_web = «LT_H», mass = «LT_M» g.")
-print("If you are not getting that, check your work or talk to a TA.")'''),
+print("One grid step of drift from library versions still counts as matching.")
+print("Farther off than that, check your work or talk to a TA.")'''),
 md('''### Stress-test the assumed aleatory noise
 
 The table below refits the same class-default GP at 1%, 3%, and 10% observation
@@ -1590,6 +1665,9 @@ else:
     print("from the tested point. Whether it SHOULD have moved more is a memo")
     print("question about the noise and length-scale assumptions, not a code bug.")'''),
 md('''## Memo
+
+Write it in markdown cells below this one, answering the prompts in order —
+400 to 800 words. This memo is the module's primary assessed artifact.
 
 1. Reflection: report measured and estimated mass, use the model-basis ratio for
    the interval check, and compare the observed failure note with the modeled proxy.

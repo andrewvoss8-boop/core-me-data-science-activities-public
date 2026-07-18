@@ -58,7 +58,7 @@ How to make it deterministic so everyone lands on the same two beams:
 - Pre-lab 2 fixes the GP kernel, the noise, the optimizer seed, and the candidate grid, so the GP recommendation is identical. **After the campaign, cut the student subset, run Pre-lab 2 once on it, and freeze the resulting (b, H_web) in `ground_truth.py`.** The frozen design is subset-dependent: change the subset and the GP recommendation moves.
 - The two frozen results are inserted directly into the next notebook's header: the equation-query result opens Pre-lab 2 and the GP-query result opens Submission 1. There is no live in-lab query event. Accepted trade-off: a student who opens Pre-lab 2 early reads the Pre-lab 1 answer. Students do not import the staff oracle or submit arbitrary coordinates, so there is no third class-wide query.
 
-**What the ground-truth model is.** An oracle fit to the tested module beams and frozen after the follow-up campaign. Its returned strengths at the two class designs are hardcoded into the student sequence, so every group sees the same result. Their reported N/g values use estimated mass, not a hidden measured mass. `ground_truth.py` is the staff provenance record; students do not receive the full data or model.
+**What the ground-truth model is.** An oracle fit to the tested module beams and frozen after the follow-up campaign. Its returned strengths at the two class designs are hardcoded into the student sequence, so every group sees the same result. Their reported N/g values use estimated mass, not a hidden measured mass. `ground_truth.py` is the staff provenance record; students do not receive the full data or model. The student materials say plainly what the oracle is — a staff model fit to the prior campaign, standing in for the testing machine — in Pre-lab 1's closing cell, the Pre-lab 2 header, and the Submission 1 header, along with the fact that the only physically printed beam is the group's Submission 1 design. Expect the "is 515.6 N a real broken beam?" question anyway, and answer it the same way.
 
 > Why an oracle built from real data, not the physics model: the physics model is the thing the students are testing, so using it as the answer key would be circular. A GP on the tested beams is the best stand-in for reality we have, and it carries whatever the equations miss, including abrupt layer-line fractures.
 
@@ -110,7 +110,7 @@ How to make it deterministic so everyone lands on the same two beams:
 
 Two graded submissions, weighted toward the memos. See `ME323_Module1_Rubric.md`. The notebooks are checked for correctness and for the required code, but the reasoning in the memo carries the grade.
 
-**Memo format.** Each submission's memo is written in markdown cells at the end of that submission notebook, answering the numbered prompts in order. Submission 1's memo is about half a page; Submission 2's memo is the primary assessed artifact of the module, 400–800 words. There is no separate memo document.
+**Memo format.** Each submission's memo is written in markdown cells at the end of that submission notebook, answering only that submission's numbered prompts, in order. Submission 1's memo covers its four prompts in about half a page; Submission 2's memo is the primary assessed artifact of the module, 400–800 words. The pre-lab memo questions are answered at the end of each pre-lab notebook and graded there, under the corresponding Submission 1 criteria. There is no separate memo document.
 
 ---
 

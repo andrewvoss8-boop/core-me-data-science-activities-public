@@ -2,7 +2,7 @@
 
 Two submissions. The memos carry the grade; the notebooks are checked for correctness and for the required code. Weights are a starting point for the team to adjust.
 
-**Memo format:** each memo is written in markdown cells at the end of its submission notebook, answering the numbered prompts in order. Submission 1's memo ≈ half a page; Submission 2's memo is the module's primary assessed artifact, 400–800 words. No separate document.
+**Memo format:** each memo is written in markdown cells at the end of its submission notebook, answering only that submission's numbered prompts, in order. Submission 1's memo covers its four prompts in about half a page; Submission 2's memo is the module's primary assessed artifact, 400–800 words. The pre-lab memo questions are answered in markdown cells at the end of each pre-lab notebook and are graded there — under the failure-mode and GP criteria below — not re-answered in the submission memos. No separate document.
 
 Suggested split: **Submission 1 = 65%, Submission 2 = 35%** of the module grade.
 
@@ -35,7 +35,7 @@ Turned in after three weeks of printing and testing. The challenge beam is desig
 | **The challenge design** | 40% | Gives `(b, H_web)`, estimated mass, posterior median strength, and a lower posterior-predictive bound for one future beam. The `z=2` probability statement is conditional on the Gaussian noise and model assumptions. The design is neither underdesigned nor padded far past the lightest feasible design. The mass-confidence tradeoff, closest-in-mass lighter infeasible point, 1/3/10% noise sensitivity, and physics check are used. |
 | **Communication** | 15% | Clear, concise, figures support the argument. |
 
-**Grading the challenge hard, both directions:** a beam expected to fail under `P_TARGET` and a beam padded far past the lightest confident design both signal the same failure — not using the uncertainty. Cap the challenge criterion at half marks for either, regardless of how polished the memo is.
+**Grading the challenge hard, both directions:** a beam expected to fail under `P_TARGET` and a beam padded far past the lightest confident design both signal the same failure — not using the uncertainty. Cap the challenge criterion at half marks for either, regardless of how polished the memo is. As a working band: "expected to fail" means the design's own stated lower bound falls under `P_TARGET`; on the heavy side, the class-default `z = 2` design and the range spanned by the 1/3/10% noise-sensitivity table mark presumptively reasonable territory. A design heavier than that range is fine when the memo prices the extra grams (a larger `z`, a named model-form worry) and is padding when the only defense is a bare safety factor.
 
 ---
 
