@@ -17,11 +17,11 @@ Today: a model that learns from sparse data and tells you how much it does not k
 
 ## Where Pre-lab 1 left you
 
-- You combined bending and average-web shear into an empirical interaction surrogate, capped it with LTB, and obtained one capacity number per design.
+- You coded three capacity branches — flexural yield, junction shear-flow separation, LTB — calibrated $(\sigma_y, k, \tau_i)$, and took the minimum: one capacity number per design.
 - The parity plot showed where that number holds and where it misses.
-- Your optimizer picked **b = 1.25, H_web = 13.4 mm**: predicted 46.6 N/g. The frozen oracle query returned 483 N = 37.64 N/g on the estimated-mass basis, with calibrated dominant-mode proxy LTB.
+- Your optimizer picked **b = 1.25, H_web = 13.2 mm**: predicted 47.8 N/g. The frozen oracle query returned 515.6 N = 39.09 N/g on the estimated-mass basis — and at that geometry the bend and LTB capacities tie within ~1%, so the "bend" proxy label is a knife-edge call.
 
-The physics gave you a *point estimate* in the region you trust it least. The missing ingredient is a statement of confidence. That is today's tool.
+The physics gave you a *point estimate* sitting exactly on a mode boundary — the region you trust it least. The missing ingredient is a statement of confidence. That is today's tool.
 
 ---
 
@@ -54,7 +54,7 @@ Bayesian thinking: carry a **distribution** over the unknown strength surface, n
 
 ![height:420px](figures/fig_gauss_strength.png)
 
-Where does the 3% come from? Three repeat prints of one design carried 802, 763, and 775 N. Same geometry, same printer.
+Where does the 3% come from? Repeat prints of one design — four beams at (1.3, 12.8) spanned 548.6 to 566.1 N. Pooled over every repeated geometry the scatter runs ≈4%, with session-to-session and printer-to-printer structure inside it; the class fixes 3% as a stated working value.
 
 ---
 
@@ -112,7 +112,7 @@ The length scale answers: how far does one test's influence reach? Too short and
 
 ![height:360px](figures/fig_noise_fits.png)
 
-We assume 3% from repeat prints (802, 763, 775 N). Pre-lab 2 refits at 1%, 3%, and 10% as a sensitivity check. The recommendation moves to (1.64, 14.88) at 1%; the 3% and 10% choices remain near (1.44, 13.4). Local stability does not prove the noise assumption correct.
+We assume 3% as the class working value. Pre-lab 2 refits at 1%, 3%, and 10% as a sensitivity check. The recommendation barely moves — 1% and 10% both pick (1.44, 13.39) while 3% picks (1.44, 13.20), one grid step apart and not monotone in the dial. Local stability does not prove the noise assumption correct.
 
 ---
 
@@ -171,7 +171,7 @@ Optimal experimental design is the batch version of the acquisition question: gi
 
 *(Earlier campaign data; rebuilt with the new dataset when testing finishes.)*
 
-The plain GP sees only `(b, H_web)`. Submission 1 lane C also sees `log(P_phys)` and `P_LTB/P_bend`, where `P_phys` is the calibrated empirical capacity. The features sharpen the fit where their physics is useful and can mislead where beams fracture along layers. Deciding which region you are in is your job, not the model's.
+The plain GP sees only `(b, H_web)`. Submission 1 lane C also sees `log(P_phys)` and `P_LTB/P_bend`, where `P_phys` is the calibrated three-branch capacity (bend, separation, LTB). The features sharpen the fit where their physics is useful and can mislead where it is blind — the separation branch carries one calibrated $\tau_i$ for an interface strength that scatters between print sessions. Deciding which region you are in is your job, not the model's.
 
 ---
 
@@ -180,7 +180,7 @@ The plain GP sees only `(b, H_web)`. Submission 1 lane C also sees `log(P_phys)`
 1. **Pre-lab 2**: fit the GP, write MUI (and EI), work the noise assumption, find the GP-recommended beam.
 2. **Two queries**: test your equation design and your GP design against the ground-truth model. Only two.
 3. **Submission 1**: combine physics, GP, and the two new points; pick the beam you will print; defend it in the memo.
-4. Print, test, reflect, redesign.
+4. Print, test, reflect, redesign: Submission 2 folds your own test result back into the model and asks what it changes.
 
 ---
 
@@ -191,6 +191,6 @@ In `ME323_Module1_Prelab2_ML`:
 - compare vanilla GP setup choices and read posterior median, epistemic uncertainty, and total predictive uncertainty,
 - write both MUI and EI,
 - refit under 1% / 3% / 10% noise and note what moves,
-- record the locked class design: **b = 1.44 mm, H_web = 13.39 mm**, posterior median 36.8 N/g.
+- record the locked class design: **b = 1.44 mm, H_web = 13.20 mm**, posterior median 38.2 N/g.
 
 That beam is your second ground-truth query. Bring your rationale, not just the number.

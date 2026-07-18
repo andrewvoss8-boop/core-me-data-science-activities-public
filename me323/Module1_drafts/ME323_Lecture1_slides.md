@@ -30,11 +30,11 @@ The equations give you a start. They will not give you the answer.
 
 Three things stand between you and a clean optimization:
 
-1. Printed beams can **fracture along the layer lines**: a sudden break, at a load no textbook equation predicts.
+1. Printed beams can **fracture along the layer lines**: the flange peels off the web at a printed interface whose strength appears in no handbook.
 2. **Lateral-torsional buckling depends on the fixture**, not just the beam.
 3. The **failure modes overlap**. Real beams fail in mixed, progressive ways.
 
-The equations narrow the problem. They do not solve it.
+We will price the layer-line mode with one calibrated number — but that number drifts with print session and support condition, and the other two problems remain. The equations narrow the problem. They do not solve it.
 
 <!-- PLACEHOLDER (new campaign): side-by-side photos of three failed beams — one yielded and sagging, one with the web split along a layer line, one tipped sideways. Caption each with its (b, H_web). -->
 
@@ -43,10 +43,10 @@ The equations narrow the problem. They do not solve it.
 ## Three modeled capacity branches
 
 - **Bending**: the beam yields in flexure.
-- **Interaction / shear proxy**: outer-fiber bending is combined with whole-web average shear.
+- **Flange-web separation**: the shear flow at the printed junction exceeds the layer-line bond strength.
 - **Lateral-torsional buckling (LTB)**: the beam tips over sideways.
 
-The empirical interaction branch is capped by LTB. The resulting dominant-mode label is a model proxy, not proof of what the broken beam will look like.
+The class capacity is the plain minimum of the three. The resulting dominant-mode label is a model proxy, not proof of what the broken beam will look like.
 
 ---
 
@@ -86,32 +86,30 @@ The I-beam logic says: thinner web, taller section, mass pushed outward.
 
 Push too far and you wake the **other two modes**:
 
-- a web too thin to carry shear (or to hold together as it prints),
+- a flange-web junction too thin to carry the shear flow — the printed layer-line bond lets go,
 - a section too tall and narrow, which **tips over** (LTB) before it ever yields.
 
 The efficient shape and the failure modes pull against each other. That tension is the design problem.
 
 ---
 
-## Bending-shear interaction (empirical surrogate)
+## Flange-web separation: shear flow at the printed junction
 
 ![height:340px](figures/fig_shear_web.png)
 
-The notebook combines outer-fiber bending with whole-web average shear:
+Every observed "shear-type" failure in the campaign is a flange peeling off the web — a fracture running *along* the printed flange-web interface. The stress that plane carries is the classic built-up-beam **shear flow** ($V=P/2$ in three-point bending):
 
-$$\frac{1}{P_\text{int}^2}=\frac{1}{P_\text{bend}^2}+\frac{1}{P_\text{shear}^2}$$
+$$\tau_j=\frac{V\,Q_f}{I_x\,t_w},\qquad Q_f=B\,t_f\,\frac{H_\text{web}+t_f}{2}\qquad\Rightarrow\qquad P_\text{sep}=2\,\tau_i\,\frac{I_x\,t_w}{Q_f}$$
 
-This is an empirical interaction surrogate, not a pointwise von Mises calculation. Pre-lab 1 compares it with a co-located $My/I+VQ/(It)$ first-yield check.
+The stress measure is textbook mechanics — the same glue-line check used for any built-up member.
 
 ---
 
-## What the interaction surrogate assumes
+## What the separation check assumes
 
-The surrogate borrows von-Mises-shaped algebra, but its two stress summaries occur at different places in the cross section. The fitted $c_s$ is a calibration parameter, not a material constant.
+The strength side is not textbook: $\tau_i$ is the bond strength **along the printed layer lines**, weaker than the bulk plastic, and no handbook lists it. Pre-lab 1 starts it at the bulk guess $\sigma_y/\sqrt3=43.9$ MPa and calibrates it from the test data — it lands near 18 MPa, and it drifts with print session and support condition.
 
-Printed PLA has another option: crack along the layer lines and let go at once.
-
-The surrogate says nothing about which morphology you get. It predicts a capacity trend, not a fracture diagnosis.
+The check predicts a capacity trend on one candidate plane. It is a dominant-mode proxy, not a fracture diagnosis — real beams still blur modes and fail progressively.
 
 ---
 
@@ -201,7 +199,7 @@ $$L_b=kL\qquad\Rightarrow\qquad M_{cr}\ \propto\ \frac{1}{(kL)^2}$$
 - Textbook `k=1` is a simply-supported "fork" end free to warp; stiffer restraint drops `k` below 1.
 - The handbook starting value is **`k=0.33`**. Calibration on the class subset gives **`k=0.377`**, which sets the equation design. It absorbs the real end restraint; it was never derived.
 
-Because $M_{cr}\propto 1/k^2$, a small change in `k` swings the LTB load hard, which is why the equation-optimal beam (sitting in the LTB corner) is the least trustworthy part of the map. **`k` does not transfer between fixtures — confirm it on ours before betting on that optimum.**
+Because $M_{cr}\propto 1/k^2$, a small change in `k` swings the LTB load hard — and the calibrated equation optimum sits on a **bend–LTB knife edge** (the two capacities land within ~1% there), so it is the least trustworthy part of the map. **`k` does not transfer between fixtures — confirm it on ours before betting on that optimum.**
 
 ---
 
@@ -211,7 +209,7 @@ For each beam, assign the dominant pure-mode proxy. Color a map of the design sp
 
 ![height:400px](figures/fig_failure_mode_map.png)
 
-Tall thin webs tip (LTB, green). Short thin webs are interaction/shear-limited (red). The middle bends (blue).
+Tall thin webs tip (LTB, green). Short thin webs are separation-limited (red): the junction shear flow beats the layer-line bond. The middle bends (blue).
 
 ---
 
@@ -232,7 +230,7 @@ Watch for two things:
 
 ![height:420px](figures/fig_two_optima.png)
 
-This illustration uses the handbook starting value $k=0.33$. The class calibration updates it to $k=0.377$ and moves the exact equation optimum to $(b,H_\text{web})=(1.25,13.40)$.
+This illustration uses the handbook starting values ($k=0.33$, bulk $\tau_i$). The class calibration ($\sigma_y=66.8$ MPa, $k=0.377$, $\tau_i=17.9$ MPa) moves the exact equation optimum to $(b,H_\text{web})=(1.25,13.20)$.
 
 ---
 
@@ -254,8 +252,8 @@ A data-driven model that carries its own uncertainty is built for this situation
 In `ME323_Module1_Prelab1_FailureModes`:
 
 - load the beam data, compute strength-to-weight,
-- code flexural yield and the average-web-shear interaction surrogate,
-- compare dominant-mode proxies with measured strengths and failure notes,
+- code flexural yield and the junction shear-flow separation check (start $\tau_i$ at the bulk guess 43.9 MPa),
+- compare dominant-mode proxies with measured strengths and failure notes, then calibrate $(\sigma_y, k, \tau_i)$,
 - optimize strength-to-weight.
 
 The beam you find there is one of your two ground-truth queries later. Bring questions.

@@ -147,17 +147,17 @@ def build_lecture1():
 
     bullets_slide(prs, "Why this is hard", [
         "Three things stand between you and a clean optimization:",
-        ("Printed beams can fracture along the layer lines: a sudden break, at a load no textbook equation predicts.", 1),
+        ("Printed beams can fracture along the layer lines: the flange peels off the web at a printed interface whose strength appears in no handbook.", 1),
         ("Lateral-torsional buckling depends on the fixture, not just the beam.", 1),
         ("The failure modes overlap. Real beams fail in mixed, progressive ways.", 1),
-        "The equations narrow the problem. They do not solve it.",
+        "We will price the layer-line mode with one calibrated number — but that number drifts with print session and support condition, and the other two problems remain. The equations narrow the problem. They do not solve it.",
     ], size=20)
 
     bullets_slide(prs, "Three modeled capacity branches", [
         ("Bending: the beam yields in flexure.", 1),
-        ("Interaction / shear proxy: outer-fiber bending is combined with whole-web average shear.", 1),
+        ("Flange-web separation: the shear flow at the printed junction exceeds the layer-line bond strength.", 1),
         ("Lateral-torsional buckling (LTB): the beam tips over sideways.", 1),
-        "The empirical interaction branch is capped by LTB. The dominant-mode label is a model proxy, not proof of the observed fracture.",
+        "The class capacity is the plain minimum of the three. The dominant-mode label is a model proxy, not proof of the observed fracture.",
     ], size=21)
 
     image_slide(prs, "Bending", "figures/fig_bending_stress.png", eq="eq/bend.png", max_h=4.2)
@@ -174,20 +174,21 @@ def build_lecture1():
     bullets_slide(prs, "The catch", [
         "The I-beam logic says: thinner web, taller section, mass pushed outward.",
         "Push too far and you wake the other two modes:",
-        ("a web too thin to carry shear (or to hold together as it prints),", 1),
+        ("a flange-web junction too thin to carry the shear flow — the printed layer-line bond lets go,", 1),
         ("a section too tall and narrow, which tips over (LTB) before it ever yields.", 1),
         "The efficient shape and the failure modes pull against each other. That tension is the design problem.",
     ], size=21)
 
-    image_slide(prs, "Bending-shear interaction (empirical surrogate)",
-                "figures/fig_shear_web.png", eq="eq/shear.png",
-                caption="Outer-fiber bending and whole-web average shear combine through an empirical interaction surrogate, not a pointwise von Mises check.",
+    image_slide(prs, "Flange-web separation: shear flow at the printed junction",
+                "figures/fig_shear_web.png", eq="eq/sepflow.png",
+                caption="Every observed shear-type failure is a flange peeling off the web. The stress on that plane is the classic built-up-beam shear flow (V = P/2).",
                 max_h=3.8)
 
-    bullets_slide(prs, "What the interaction surrogate assumes", [
-        "The surrogate borrows von-Mises-shaped algebra, but its two stress summaries occur at different cross-section locations. Fitted c_s is a calibration knob, not a material constant.",
-        "Printed PLA has another option: crack along the layer lines and let go at once.",
-        "The surrogate predicts a capacity trend, not a fracture diagnosis. Pre-lab 1 compares it with a co-located My/I + VQ/(It) first-yield check.",
+    bullets_slide(prs, "What the separation check assumes", [
+        "The stress measure is textbook mechanics — the same glue-line check used for any built-up member.",
+        "The strength side is not: tau_i is the bond strength along the printed layer lines, weaker than the bulk plastic, listed in no handbook.",
+        "Pre-lab 1 starts it at the bulk guess sigma_y/sqrt(3) = 43.9 MPa and calibrates it from the data — it lands near 18 MPa, and it drifts with print session and support condition.",
+        "The check predicts a capacity trend on one candidate plane. It is a dominant-mode proxy, not a fracture diagnosis.",
     ], size=22)
 
     image_slide(prs, "Fracture vs yield, on the test machine", "figures/fig_brittle_traces.png",
@@ -234,11 +235,11 @@ def build_lecture1():
         "Set by the fixture — how the ends grip, whether they warp, where load lands — not by the beam.",
         "Textbook k = 1 is a simply-supported fork end free to warp; stiffer restraint drops k below 1.",
         "Handbook starting value k = 0.33. Calibration on the class subset gives k = 0.377, which sets the equation design.",
-        "Since M_cr ~ 1/k^2, a small change swings LTB hard. k does not transfer between fixtures: confirm it on ours before betting on the LTB-corner optimum.",
+        "Since M_cr ~ 1/k^2, a small change swings LTB hard — and the calibrated equation optimum sits on a bend-LTB knife edge (capacities within ~1%). k does not transfer between fixtures: confirm it on ours before betting on that optimum.",
     ])
 
     image_slide(prs, "Which mode drives?", "figures/fig_failure_mode_map.png",
-                caption="Tall thin webs tip (LTB). Short thin webs are interaction/shear-limited. The middle bends.")
+                caption="Tall thin webs tip (LTB). Short thin webs are separation-limited: junction shear flow beats the layer-line bond. The middle bends.")
 
     bullets_slide(prs, "Does the theory match the data?", [
         "Pre-lab 1 answers this with your beam dataset: compute each beam's predicted capacity and mode, then plot predictions against measurements.",
@@ -249,7 +250,7 @@ def build_lecture1():
     ], size=20)
 
     image_slide(prs, "One assumption, two different beams", "figures/fig_two_optima.png",
-                caption="Illustration: handbook k = 0.33 versus textbook k = 1. Class calibration gives k = 0.377 and equation optimum (1.25, 13.40).")
+                caption="Illustration: handbook starting values versus the class calibration (66.8 MPa, k = 0.377, tau_i = 17.9 MPa), which moves the equation optimum to (1.25, 13.20).")
 
     bullets_slide(prs, "Where this leaves us", [
         "The equations are useful but partial:",
@@ -263,8 +264,8 @@ def build_lecture1():
     bullets_slide(prs, "Before next time: Pre-lab 1", [
         "In ME323_Module1_Prelab1_FailureModes:",
         ("load the beam data, compute strength-to-weight,", 1),
-        ("code flexural yield and the average-web-shear interaction surrogate,", 1),
-        ("compare dominant-mode proxies with measured strengths and failure notes,", 1),
+        ("code flexural yield and the junction shear-flow separation check (start tau_i at the bulk guess 43.9 MPa),", 1),
+        ("compare dominant-mode proxies with measured strengths and failure notes, then calibrate (sigma_y, k, tau_i),", 1),
         ("optimize strength-to-weight.", 1),
         "The beam you find there is one of your two ground-truth queries later. Bring questions.",
     ], size=20)
@@ -282,10 +283,10 @@ def build_lecture2():
                 "Flow and examples adapted from Prof. Bilionis's data-science lecturebook.")
 
     bullets_slide(prs, "Where Pre-lab 1 left you", [
-        ("You combined bending and average-web shear into an empirical interaction surrogate, capped it with LTB, and obtained one capacity number per design.", 1),
+        ("You coded three capacity branches — flexural yield, junction shear-flow separation, LTB — calibrated (sigma_y, k, tau_i), and took the minimum: one capacity number per design.", 1),
         ("The parity plot showed where that number holds and where it misses.", 1),
-        ("Your optimizer picked b = 1.25, H_web = 13.4 mm: predicted 46.6 N/g. The frozen oracle returned 483 N = 37.64 N/g on the estimated-mass basis; calibrated proxy LTB.", 1),
-        "The physics gave you a point estimate in the region you trust it least. The missing ingredient is a statement of confidence.",
+        ("Your optimizer picked b = 1.25, H_web = 13.2 mm: predicted 47.8 N/g. The frozen oracle returned 515.6 N = 39.09 N/g on the estimated-mass basis — and there the bend and LTB capacities tie within ~1%, so the 'bend' proxy is a knife-edge call.", 1),
+        "The physics gave you a point estimate sitting exactly on a mode boundary — the region you trust it least. The missing ingredient is a statement of confidence.",
     ], size=20)
 
     bullets_slide(prs, "You already have most of this", [
@@ -304,7 +305,7 @@ def build_lecture2():
     ])
 
     image_slide(prs, "A Gaussian is a belief about one beam", "figures/fig_gauss_strength.png",
-                source="The 3% spread comes from three repeat prints: 802, 763, 775 N. Same geometry, same printer.")
+                source="Where does 3% come from? Four repeat prints at (1.3, 12.8) spanned 548.6-566.1 N; pooled over all repeats the scatter runs ~4% with session/printer structure. 3% is the stated class working value.")
     image_slide(prs, "Two beams at once: covariance", "figures/fig_mvn_correlation.png",
                 caption="Nearby designs share material, geometry, and physics, so their strengths move together.",
                 source="The covariance matrix writes that down. This is the piece the GP is built on.")
@@ -324,8 +325,8 @@ def build_lecture2():
                 caption="The length scale answers: how far does one test's influence reach?",
                 source="No single right answer; there are defensible and indefensible ones.")
     image_slide(prs, "So is the noise", "figures/fig_noise_fits.png",
-                caption="We assume 3% from repeats (802, 763, 775 N). Pre-lab 2 refits at 1%, 3%, and 10%.",
-                source="The 1% recommendation moves; 3% and 10% remain nearby. This is sensitivity evidence, not proof of the noise value.")
+                caption="We assume 3% as the class working value. Pre-lab 2 refits at 1%, 3%, and 10%.",
+                source="The recommendation barely moves: 1% and 10% both pick (1.44, 13.39); 3% picks (1.44, 13.20) — one grid step, not monotone. Sensitivity evidence, not proof of the noise value.")
 
     bullets_slide(prs, "Epistemic and aleatory uncertainty do different jobs", [
         ("Epistemic: uncertainty about the latent surface because tests are sparse. Informative beams can reduce it.", 1),
@@ -356,14 +357,14 @@ def build_lecture2():
     ], size=21)
 
     image_slide(prs, "Physics-informed GP: the two tracks meet", "figures/gif_pigp_vs_gp.gif",
-                caption="Plain GP sees only (b, H_web). Submission 1 lane C also sees log(P_phys) and P_LTB/P_bend.",
-                source="Features sharpen the fit where beams bend and yield; they can mislead where beams fracture along layers.  (animated in slideshow)")
+                caption="Plain GP sees only (b, H_web). Submission 1 lane C also sees log(P_phys) and P_LTB/P_bend from the calibrated three-branch capacity.",
+                source="Features sharpen the fit where their physics is useful; the separation branch carries one calibrated tau_i for an interface strength that scatters between sessions.  (animated in slideshow)")
 
     bullets_slide(prs, "The activity from here", [
         ("Pre-lab 2: fit the GP, write MUI (and EI), work the noise assumption, find the GP-recommended beam.", 1),
         ("Two queries: test your equation design and your GP design against the ground-truth model. Only two.", 1),
         ("Submission 1: combine physics, GP, and the two new points; pick the beam you will print; defend it in the memo.", 1),
-        ("Print, test, reflect, redesign.", 1),
+        ("Print, test, reflect, redesign: Submission 2 folds your own test result back into the model and asks what it changes.", 1),
     ], size=21)
 
     bullets_slide(prs, "Before next time: Pre-lab 2", [
@@ -371,7 +372,7 @@ def build_lecture2():
         ("compare vanilla GP setups and read posterior median, epistemic uncertainty, and total predictive uncertainty,", 1),
         ("write both MUI and EI,", 1),
         ("refit under 1% / 3% / 10% noise and note what moves,", 1),
-        ("record the locked class design: b = 1.44 mm, H_web = 13.39 mm, posterior median 36.8 N/g.", 1),
+        ("record the locked class design: b = 1.44 mm, H_web = 13.20 mm, posterior median 38.2 N/g.", 1),
         "That beam is your second ground-truth query. Bring your rationale, not just the number.",
     ], size=20)
 
