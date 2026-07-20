@@ -1,4 +1,5 @@
-"""Build the four polished student notebooks for Module 1 (ridge_blind14 flow).
+"""Build the four polished student notebooks for Module 1
+(ridge_blind14 + b=1.0 seed flow; widened box b in [1.0, 7.0], 2026-07-20).
 
 Everything students see is self-contained: no ground-truth access, class query
 results hardcoded, and every FILL-IN step followed by a printed checkpoint
@@ -39,14 +40,25 @@ out = pd.DataFrame({
     "failure_note": hand.comment.str.strip().values,
 })
 DATA_DIR = ME323.parent / "data"
+# 2026-07-20 widened box (b >= 1.0): the real b=1.0 follow-up test joins the
+# handout as beam 15 to anchor the new edge. Its measured weight was never
+# recorded (weight_g stays NaN); every downstream number uses estimated mass.
+seed = pd.read_csv(DATA_DIR / "ibeam150_additional_tests.csv").query("b == 1.0 and H == 12.5")
+assert len(seed) == 1 and abs(float(seed.strength_N.iloc[0]) - 475.0) < 0.05, seed
+out = pd.concat([out, pd.DataFrame({
+    "beam_id": [15], "b_mm": [1.0], "H_web_mm": [12.5],
+    "weight_g": [np.nan],
+    "strength_N": [float(seed.strength_N.iloc[0])],
+    "failure_note": [seed.failure_note.iloc[0].strip()],
+})], ignore_index=True)
 out.to_csv(DATA_DIR / "student_beams_B10_L150.csv", index=False)
 out.to_csv(DRAFTS / "student_beams_B10_L150.csv", index=False)
-print("wrote student_beams_B10_L150.csv (14 beams) to data/ and Module1_drafts/")
+print("wrote student_beams_B10_L150.csv (15 beams) to data/ and Module1_drafts/")
 
-# frozen class results (run12 v6 dry run, oracle policy v3; GT = gpf_sw_matern_sep
-# trained on all 85 usable tests incl. the proper-supports batch — see notebook 20)
-EQ_B, EQ_H, EQ_SW, EQ_N = 1.25, 13.20, 39.09, 515.6
-GP_B, GP_H, GP_SW, GP_N = 1.44, 13.20, 38.90, 533.1
+# frozen class results (2026-07-20 widened-box re-freeze, oracle policy v3;
+# GT = gpf_sw_matern_sep on all 85 usable tests, unchanged — see ground_truth.py)
+EQ_B, EQ_H, EQ_SW, EQ_N = 1.10, 13.25, 38.02, 482.6
+GP_B, GP_H, GP_SW, GP_N = 1.00, 13.39, 36.06, 438.7
 
 # ----------------------------------------------------------------------------------
 # 2. shared source blocks (student-facing, self-contained)
@@ -139,7 +151,7 @@ def gov_mode(b, H, sy, k, tau_i):
 '''
 
 # calibrated values (verified below against the solution run)
-CAL_SY, CAL_K, CAL_TAU = 66.8e6, 0.377, 17.91e6  # run12 dry run, junction model
+CAL_SY, CAL_K, CAL_TAU = 66.83e6, 0.377, 16.76e6  # 15-beam handout calibration (widened box, 2026-07-20)
 
 SRC_GP_FIT = '''\
 from sklearn.gaussian_process import GaussianProcessRegressor
@@ -201,15 +213,68 @@ Lines marked `FILL IN` are yours. Each step prints a checkpoint.'''),
 code(SRC_CONST + 'print("Constants loaded. Nominal SY =", SY/1e6, "MPa")'),
 md('''## 1. The data
 
-These are fourteen real three-point-bend tests. The beams were printed at
+These are fifteen real three-point-bend tests. The beams were printed at
 172 mm and tested on a 150 mm support span. `failure_note` is the test engineer's
 observation, not a model-generated label. `weight_g` is measured; `mass_est_g`
 comes from nominal geometry. They should not be identical. Read the notes and
-the mass discrepancy before fitting anything.'''),
+the mass discrepancy before fitting anything. One quirk: beam 15's measured
+weight was never recorded, so its mass columns read NaN. Every
+strength-to-weight number in this module uses estimated mass, so nothing
+downstream depends on that missing measurement.'''),
 code(SRC_LOAD + '''
 pd.set_option("display.max_colwidth", None)
 df[["beam_id", "b", "H", "weight_g", "mass_est_g", "mass_delta_pct",
     "strength_N", "failure_note"]].round({"mass_delta_pct": 1})'''),
+md("""## 1b. Where a strength number comes from: reduce four raw traces
+
+Every `strength_N` above was reduced from a force–displacement trace recorded
+on the test machine. Here are four of those traces, verbatim from the campaign
+(downsampled; the peak row is preserved exactly): beams **6** and **13**
+(vertical fracture, complete and partial), beam **14** (flange–web
+separation), and beam **9** (the one that twisted off the test stand). Your
+group will do this same reduction on your own beam's trace after test day —
+so do it here first, where the answer is checkable.
+
+Reduce each trace to one number and compare against the handout column. Then
+read the *shapes*: an abrupt cliff after the peak is a fracture; a rounded
+peak that sheds load gradually is a different physical story. And look hard at
+beam 9 — the machine faithfully recorded a peak of 314.4 N, but the beam left
+the load path by twisting, not by breaking. Whether that number is a material
+strength, a fixture/stability artifact, or both is a judgment call, and every
+model downstream of this table inherits whatever you decide."""),
+
+code("""TURL = ("https://raw.githubusercontent.com/andrewvoss8-boop/"
+        "core-me-data-science-activities-public/main/data/student_traces_4beams.csv")
+try:
+    tr = pd.read_csv(TURL); print("loaded traces from GitHub")
+except Exception:
+    tr = pd.read_csv("student_traces_4beams.csv"); print("loaded local traces")
+
+peak_N = ____    # >>> FILL IN: reduce each beam's trace to its peak force
+                 #     (hint: group tr by beam_id and take the max of force_N)
+
+fig, axes = plt.subplots(2, 2, figsize=(11, 6.6))
+for ax, bid in zip(axes.ravel(), [6, 13, 14, 9]):
+    g = tr[tr.beam_id == bid]
+    row = df[df.beam_id == bid].iloc[0]
+    ax.plot(g.displacement_mm, g.force_N, lw=1)
+    ax.axhline(row.strength_N, color="r", ls="--", lw=0.8, label="handout strength_N")
+    ax.set_title(f"beam {bid}  (b={row.b}, H_web={row.H})", fontsize=9)
+    ax.set_xlabel("displacement [mm]"); ax.set_ylabel("force [N]"); ax.legend(fontsize=7)
+plt.tight_layout(); plt.show()
+
+cmp = pd.DataFrame({"trace_peak_N": peak_N,
+                    "handout_strength_N": df.set_index("beam_id").strength_N}).dropna()
+print("CHECKPOINT: each trace peak should match the handout to 0.1 N")
+print(cmp.round(1))
+"""),
+
+md("""Two of these curves end in a cliff and two do not, and the cliff beams are the
+ones whose notes say *fracture* — the curve shape and the note are the same
+fact seen two ways. That is the whole data-reduction lesson: `strength_N` is a
+decision about a curve, not a reading off a dial, and beam 9 is the case where
+the decision is genuinely arguable (memo question 5)."""),
+
 md('''## 2. Strength-to-weight
 
 The design objective uses estimated mass from nominal geometry:
@@ -230,8 +295,9 @@ print(top[["beam_id", "b", "H", "weight_g", "mass_est_g",
 print("\\nMeasured minus estimated mass:")
 print(df[["beam_id", "mass_delta_g", "mass_delta_pct"]]
       .round(2).to_string(index=False))
-print("\\nCHECKPOINT: the best of the original 14 beams should be beam «BEST_ID» "
-      "(b=«BEST_B», H_web=«BEST_H») at «BEST_SW2» N/g.")
+print("\\nCHECKPOINT: the best of the 15 handout beams should still be beam «BEST_ID» "
+      "(b=«BEST_B», H_web=«BEST_H») at «BEST_SW2» N/g; the thinnest beam, 15 (b=1.0), "
+      "comes in at «SEED_SW» N/g -- read its failure note.")
 print("If you are not getting that, check your work or talk to a TA.")'''),
 md('''## 3. Section geometry and what each property controls
 
@@ -370,7 +436,7 @@ key_code('''def P_LTB_basic(p):
     return 4*Mcr/(L/1e3)
 
 SY_KEY, K_KEY, TAU_KEY = «CAL_SY_E», «CAL_K_V», «CAL_TAU_E»
-b_key = np.linspace(1.25, 7.0, 90)
+b_key = np.linspace(1.0, 7.0, 90)
 H_key = np.linspace(5.0, 16.0, 90)
 BB_key, HH_key = np.meshgrid(b_key, H_key)
 X_key = np.column_stack([BB_key.ravel(), HH_key.ravel()])
@@ -546,10 +612,11 @@ whether each change corrects a plausible numerical assumption or compensates
 for missing physics. The failure-note table is evidence for that distinction.'''),
 md('''## 10. Optimize the equation design
 
-Search the design box for the best predicted strength-to-weight under the
+Search the design box (b from 1.0 to 7.0 mm, H_web from 5.0 to 16.0 mm) for
+the best predicted strength-to-weight under the
 calibrated empirical model. Fill in the objective.'''),
 code('''best = (None, None, -1)
-for b in np.arange(1.25, 7.01, 0.05):
+for b in np.arange(1.0, 7.01, 0.05):
     for H in np.arange(5.0, 16.01, 0.05):
         cap = capacity(b, H, SY_CAL, K_CAL, TAU_CAL)
         sw = ____    # >>> FILL IN: predicted capacity per estimated gram
@@ -596,8 +663,14 @@ graded with it. Do not re-answer them in the Submission 1 memo.
 3. For $\\sigma_y$, `k`, and $\\tau_i$, decide whether calibration is a
    correction to a number or the measurement of a property no handbook has.
    Cite specific residuals and failure notes from the diagnostic table.
-4. The optimum sits at minimum `b`, where predicted str/w still increases as
-   the web thins. Which observed failures should reduce your trust there?
+4. The optimum sits one grid notch off the thin-`b` edge of the box, pulled
+   back from b = 1.0 by the calibrated LTB surface. Which observed failures --
+   beam 15's note above all -- should reduce your trust in that neighborhood?
+
+5. From §1b: which trace shapes separate abrupt fracture from gradual
+   failure? Make the call on beam 9 — material strength, fixture/stability
+   artifact, or both — and say how a model trained on that 314.4 N should
+   treat it.
 
 Use the final design output, the nominal/calibrated plots, and beam IDs with
 their full failure notes. No additional optimization code is required.'''),
@@ -606,9 +679,9 @@ key_md('''## KEY: memo targets
 1. Measured mass includes print and measurement variation; estimated mass is a
    nominal-geometry quantity available before printing. Students should not
    silently mix denominators when comparing str/w.
-2. At the calibrated optimum the printed bend and LTB capacities land within
-   about 1% of each other; the "bend" label is an artifact of the 0.999
-   tie-break threshold. Optimizing a min() of capacity surfaces drives the
+2. At the calibrated optimum all three mode capacities land within about 1%
+   of each other (roughly 621 / 623 / 618 N for bend / separation / LTB); the
+   "LTB" label is an artifact of the tie-break thresholds. Optimizing a min() of capacity surfaces drives the
    design toward mode intersections — exactly where a single proxy label
    deserves the least trust. Treat the label as a dominant-mode proxy, not an
    observed fracture diagnosis.
@@ -618,7 +691,8 @@ key_md('''## KEY: memo targets
    *measurement* of a real printed-interface property that no handbook lists
    (the faculty model-selection study back-calculates it at 15-21 MPa across
    the campaign separations, CoV 15%).
-4. The thin-web flange-web-separation notes are the direct warning. The model
+4. Beam 15's flange-web separation at b = 1.0 is the direct warning -- the
+   calibrated model still overpredicts that beam by about 14%. The model
    has no joint-separation or local plate-failure equation, so an edge optimum
    is extrapolation into its weakest physics.'''),
 ]
@@ -630,10 +704,10 @@ md(f'''# Pre-lab 2: Vanilla Gaussian Processes and the Class GP Design
 
 <img src="https://raw.githubusercontent.com/andrewvoss8-boop/core-me-data-science-activities-public/main/me323/Module1_drafts/figures/I_beam_dimensions.jpg" alt="I-beam dimensions" width="240">
 
-The equation beam from Pre-lab 1, `(b={EQ_B}, H_web={EQ_H})`, was predicted at
+The equation beam from Pre-lab 1, `(b={EQ_B:.2f}, H_web={EQ_H})`, was predicted at
 «EQ_PRED» N/g. The class query returned **{EQ_N} N**, or **{EQ_SW} N/g on the same
-estimated-mass basis**. It is the best of the first 15 beams, beating the
-original best-of-14 value of «BEST_SW2» N/g. The returned ratio is
+estimated-mass basis**. It is the best of the first 16 beams, beating the
+handout best-of-15 value of «BEST_SW2» N/g. The returned ratio is
 «EQ_BELOW_PCT»% below the equation prediction.
 
 Remember where that number comes from: the **oracle**, the staff model fit to
@@ -646,19 +720,19 @@ This notebook uses only data-driven, vanilla GPs. You will compare reasonable
 setup choices, separate epistemic uncertainty from observation noise, use MUI
 and EI, and then apply one locked recipe so the class submits one common beam.'''),
 code(SRC_CONST + SRC_LOAD + f'''
-eq_beam = pd.DataFrame([dict(beam_id=15, b={EQ_B}, H={EQ_H}, strength_N={EQ_N},
+eq_beam = pd.DataFrame([dict(beam_id=16, b={EQ_B:.2f}, H={EQ_H}, strength_N={EQ_N},
                              weight_g=np.nan,
-                             mass_est_g=estimated_mass_g({EQ_B}, {EQ_H}),
+                             mass_est_g=estimated_mass_g({EQ_B:.2f}, {EQ_H}),
                              failure_note="class equation beam")])
 df = pd.concat([df, eq_beam], ignore_index=True)
 df["str_to_weight"] = df.strength_N / df.mass_est_g
-initial_best = df.loc[df.beam_id <= 14, "str_to_weight"].max()
+initial_best = df.loc[df.beam_id <= 15, "str_to_weight"].max()
 assert {EQ_SW} > initial_best
-print(f"{{len(df)}} beams; original best={{initial_best:.2f}} N/g; "
+print(f"{{len(df)}} beams; handout best={{initial_best:.2f}} N/g; "
       f"equation beam={EQ_SW:.2f} N/g, now ranked #1")
 pd.set_option("display.max_colwidth", None)
 print("\\nObserved failure notes carried into the GP decision:")
-print(df.loc[df.beam_id <= 14, ["beam_id", "b", "H", "failure_note"]]
+print(df.loc[df.beam_id <= 15, ["beam_id", "b", "H", "failure_note"]]
       .to_string(index=False))'''),
 md('''## 1. What choices define a vanilla GP?
 
@@ -684,7 +758,7 @@ from sklearn.gaussian_process.kernels import ConstantKernel as C, RBF, Matern
 
 X = df[["b", "H"]].values.astype(float)
 sw_obs = df.str_to_weight.values.astype(float)
-bg = np.linspace(1.25, 7.0, 60); Hg = np.linspace(5.0, 16.0, 60)
+bg = np.linspace(1.0, 7.0, 63); Hg = np.linspace(5.0, 16.0, 60)
 BB, HH = np.meshgrid(bg, Hg)
 Xg = np.column_stack([BB.ravel(), HH.ravel()])
 
@@ -735,7 +809,7 @@ for name, model in option_models:
 md('''## 2. Compare setup choices on the same axes
 
 These are not five independent truths. They are five posterior surfaces from
-the same 15 observations under different modeling assumptions.'''),
+the same 16 observations under different modeling assumptions.'''),
 code('''option_means = [predict_option(model, Xg)[0].reshape(BB.shape)
                 for _, model in option_models]
 vmin = min(z.min() for z in option_means); vmax = max(z.max() for z in option_means)
@@ -781,7 +855,7 @@ for a, Z, title in [(ax[0], MU, "posterior median str/w [N/g]"),
     a.set_xlabel("b [mm]"); a.set_ylabel("H_web [mm]"); a.set_title(title)
 plt.tight_layout(); plt.show()'''),
 md('''The fitted length scale is much longer in `b` than in `H_web`, so the surface
-changes mostly with `H_web`. That is an ARD identifiability result from 15 sparse
+changes mostly with `H_web`. That is an ARD identifiability result from 16 sparse
 points, not a plotting-grid bug and not proof that `b` is physically irrelevant.'''),
 md('''### Read the 2D posterior through two 1D slices
 
@@ -807,17 +881,17 @@ The two cuts below cross at the equation-query point. The inner band is
 uncertainty about the latent trend; the outer band predicts one future
 observation. Both are conditional on the kernel, noise, and model form.'''),
 code('''r_log, z_band = 0.03, 2.0
-b_slice = np.linspace(1.25, 7.0, 400)
+b_slice = np.linspace(1.0, 7.0, 400)
 H_slice = np.linspace(5.0, 16.0, 400)
 slices = [
-    ("vary b at H_web = 13.20 mm", b_slice,
-     np.column_stack([b_slice, np.full_like(b_slice, 13.20)]),
-     "b [mm]", 1.25),
-    ("vary H_web at b = 1.25 mm", H_slice,
-     np.column_stack([np.full_like(H_slice, 1.25), H_slice]),
-     "H_web [mm]", 13.20),
+    ("vary b at H_web = 13.25 mm", b_slice,
+     np.column_stack([b_slice, np.full_like(b_slice, 13.25)]),
+     "b [mm]", 1.10),
+    ("vary H_web at b = 1.10 mm", H_slice,
+     np.column_stack([np.full_like(H_slice, 1.10), H_slice]),
+     "H_web [mm]", 13.25),
 ]
-equation_sw = float(df.loc[df.beam_id.eq(15), "str_to_weight"].iloc[0])
+equation_sw = float(df.loc[df.beam_id.eq(16), "str_to_weight"].iloc[0])
 fig, axes = plt.subplots(2, 2, figsize=(12, 7.5))
 for col, (title, xplot, Xslice, xlabel, x_anchor) in enumerate(slices):
     mu_slice, sigma_epi = gp.predict((Xslice-fmu)/fsd, return_std=True)
@@ -848,7 +922,7 @@ axes[0, 0].legend(fontsize=8)
 axes[1, 0].legend(fontsize=8)
 plt.tight_layout(); plt.show()
 
-cross = np.array([[1.25, 13.20]])
+cross = np.array([[1.10, 13.25]])
 cross_mu, cross_epi = gp.predict((cross-fmu)/fsd, return_std=True)
 cross_total = np.sqrt(cross_epi[0]**2 + r_log**2)
 print(f"slice crossing: median={np.exp(cross_mu[0]+ymean):.2f} N/g, "
@@ -860,11 +934,7 @@ Refit at 1%, 3%, and 10% assumed relative observation noise. The latent GP
 standard deviation is epistemic and can shrink with more informative tests.
 Total predictive uncertainty also includes the assumed observation noise:
 $\\sigma_{total}=\\sqrt{\\sigma_{epi}^2+r^2}$ in log space.'''),
-code('''tested_excl = np.zeros(len(Xg), bool)
-for _b, _H in X:
-    tested_excl |= (np.abs(Xg[:, 0]-_b) < 0.15) & (np.abs(Xg[:, 1]-_H) < 0.30)
-
-noise_fits, noise_rows = {}, []
+code('''noise_fits, noise_rows = {}, []
 fig, axes = plt.subplots(2, 3, figsize=(14, 8), sharex=True, sharey=True)
 for col, pct in enumerate([1, 3, 10]):
     r = pct/100
@@ -874,7 +944,7 @@ for col, pct in enumerate([1, 3, 10]):
     m2, s2 = g2.predict((Xg-fmu)/fsd, return_std=True)
     total2 = np.sqrt(s2**2+r**2)
     noise_fits[pct] = (g2, m2, s2)
-    i = int(np.argmax(np.where(tested_excl, -np.inf, m2+s2)))
+    i = int(np.argmax(m2+s2))
     noise_rows.append(dict(noise_pct=pct, b=Xg[i,0], H_web=Xg[i,1],
                            median_sw=np.exp(m2[i]+ymean),
                            sigma_epistemic=s2[i], sigma_total=total2[i]))
@@ -887,11 +957,25 @@ for col, pct in enumerate([1, 3, 10]):
         fig.colorbar(cf, ax=axes[row, col])
 plt.tight_layout(); plt.show()
 print(pd.DataFrame(noise_rows).round(3).to_string(index=False))
-print("\\nCHECKPOINT: «NOISE_BEHAVIOR»")'''),
+print("\\nCHECKPOINT: all three settings agree on (1.00, 13.39) -- the untested"
+      " thin-b strip pulls the upper interval regardless of the assumed noise."
+      " That agreement is a local fact about this argmax, not a vote for any"
+      " noise value: the medians and sigmas underneath it differ a lot, and a"
+      " different acquisition rule could still split them.")'''),
 md('''A noise value can be a physical repeatability estimate and a regularization
 assumption. If the recommendation moves, the action is model-assumption
 sensitive. If it does not, that one decision is locally robust; the noise value
-is not thereby proven correct.'''),
+is not thereby proven correct.
+
+Full disclosure on the 3%: pooled over every repeated geometry in the staff
+campaign, the estimated print-to-print scatter is closer to **4.4%** — and the
+excess over 3% is *structured* (session-to-session and printer-to-printer
+drift), not independent per-print noise, which is exactly why no single
+percentage is "the" right value. The class fixes 3% as a stated working
+assumption. If that bothers you, good: the refits in this section are the
+tool for finding out whether your decision actually cares about the
+difference, and a memo that runs its design at 4.4% and reports what moved is
+using the assumption the way engineers are supposed to.'''),
 md('''## 5. MUI and Expected Improvement in the full 2D design box
 
 Maximum Upper Interval uses $a=\\mu+\\psi\\sigma$. Expected Improvement uses
@@ -899,8 +983,10 @@ Maximum Upper Interval uses $a=\\mu+\\psi\\sigma$. Expected Improvement uses
 $$EI=(\\mu-y_{best}-\\xi)\\Phi(Z)+\\sigma\\phi(Z),\\quad
 Z=\\frac{\\mu-y_{best}-\\xi}{\\sigma}.$$
 
-Both operate in centered log-str/w space here, and both exclude already-tested
-designs with the same rule. Fill in one line in each function.'''),
+Both operate in centered log-str/w space here, over the full design box --
+there is no rule against re-picking a tested design. With assumed noise a
+rational rule MAY choose to re-measure a strong tested beam; watch whether
+either rule actually does. Fill in one line in each function.'''),
 code('''from scipy.stats import norm
 
 def mui(mu, sigma, psi):
@@ -915,12 +1001,12 @@ def ei(mu, sigma, xi=0.0):
                     imp*norm.cdf(Z)+sigma*norm.pdf(Z), 0.0)
 
 def recommend_mui(psi, mu=mu_c, sigma=std):
-    acq = np.where(tested_excl, -np.inf, mui(mu, sigma, psi))
+    acq = mui(mu, sigma, psi)
     i = int(np.argmax(acq))
     return Xg[i], np.exp(mu[i]+ymean), sigma[i], acq[i]
 
 def recommend_ei(xi, mu=mu_c, sigma=std):
-    acq = np.where(tested_excl, -np.inf, ei(mu, sigma, xi))
+    acq = ei(mu, sigma, xi)
     i = int(np.argmax(acq))
     return Xg[i], np.exp(mu[i]+ymean), sigma[i], acq[i]
 
@@ -963,14 +1049,17 @@ md('''## 7. Final filter: the one class GP design
 You explored alternatives, but the class query must be reproducible: locking
 one recipe is what makes the second oracle query a single shared data point
 that every group can compare. The final rule is fixed: official ARD-RBF model,
-3% noise, MUI with $\\psi=1$, the stated grid, and the tested-point exclusion
-rule. Your own settings take over in Submission 1, where the design — and the
-print — are yours.'''),
+3% noise, MUI with $\\psi=1$, on the stated grid. No exclusion rule is
+needed: the widened box leaves the model a genuinely untested thin-b strip,
+and the upper interval goes there on its own. (Had it instead picked a
+tested point, re-measuring under noise is a defensible spend — it would
+just be a different lesson.) Your own settings take over in Submission 1,
+where the design — and the print — are yours.'''),
 code(f'''x_class, mean_class, sigma_class, _ = recommend_mui(1.0)
 print(f"LOCKED CLASS DESIGN: b={{x_class[0]:.2f}} mm, H_web={{x_class[1]:.2f}} mm")
 print(f"posterior median={{mean_class:.1f}} N/g, epistemic sigma_log={{sigma_class:.3f}}")
 print("CHECKPOINT: b=«MUI1_B», H_web=«MUI1_H», predicted «MUI1_M» N/g.")'''),
-key_code(f'''assert abs(x_class[0]-{GP_B}) < 0.06
+key_code(f'''assert abs(x_class[0]-{GP_B:.2f}) < 0.06
 assert abs(x_class[1]-{GP_H}) < 0.06'''),
 key_md('''## KEY-only sensitivity comparison
 
@@ -981,11 +1070,11 @@ key_code('''matern_fixed = GaussianProcessRegressor(
         length_scale=0.25, length_scale_bounds="fixed", nu=2.5),
     alpha=0.03**2, normalize_y=False,
     n_restarts_optimizer=5, random_state=0).fit(
-        (X-np.array([1.25, 5.0]))/np.array([5.75, 11.0]), y-ymean)
+        (X-np.array([1.0, 5.0]))/np.array([6.0, 11.0]), y-ymean)
 mm, ss = matern_fixed.predict(
-    (Xg-np.array([1.25, 5.0]))/np.array([5.75, 11.0]), return_std=True)
+    (Xg-np.array([1.0, 5.0]))/np.array([6.0, 11.0]), return_std=True)
 surfaces = [MU, np.exp(mm+ymean).reshape(BB.shape)]
-im = int(np.argmax(np.where(tested_excl, -np.inf, mm+ss)))
+im = int(np.argmax(mm+ss))
 x_matern = Xg[im]
 lo = min(z.min() for z in surfaces); hi = max(z.max() for z in surfaces)
 fig, axes = plt.subplots(1, 2, figsize=(12, 4.6), sharex=True, sharey=True)
@@ -1014,13 +1103,14 @@ go in the Submission 1 memo.
 2. Compare at least two vanilla setup choices from section 2. Which assumption
    changed the surface, and why is that not evidence that one is automatically true?
 3. Compare MUI and EI. Do they recommend the same design, and what does each dial value?
-4. Why does the locked GP design differ from the equation design? What do the
-   failure notes contain that neither scalar-response model uses?
+4. Why does the locked GP design differ from the equation design, and why is
+   their agreement on the thin-b region weaker evidence than it looks? What
+   do the failure notes contain that neither scalar-response model uses?
 5. Explain whether the noise activity makes the locked recommendation robust
    or assumption-sensitive.
 
 No new design code is required. The final submitted class design is
-`(b={GP_B}, H_web={GP_H})` from the locked cell.'''),
+`(b={GP_B:.2f}, H_web={GP_H})` from the locked cell.'''),
 key_md('''## KEY: memo targets
 
 1. Accept any map-supported region where a larger epistemic sigma changes the
@@ -1031,8 +1121,13 @@ key_md('''## KEY: memo targets
 3. MUI adds a sigma bonus everywhere; EI weights the probability and amount of
    beating the incumbent. The recommendation table supplies exact comparisons.
 4. The equation maximizes its calibrated capacity/mass. The locked GP maximizes
-   a data-conditioned upper interval. Failure morphology, layer separation,
-   fixture tipping, and fracture progression are absent from both scalar targets.
+   a data-conditioned upper interval -- conditioned on data that already
+   contains the equation beam's result, so the two class beams agreeing on
+   the thin-b region is conditioning, not independent convergence. Note also
+   where the GP pick sits: on the b = 1.0 boundary, the geometry family where
+   beams 12, 14, and 15 all separated at the flange-web interface. Failure
+   morphology, layer separation, fixture tipping, and fracture progression
+   are absent from both scalar targets.
 5. Use the generated 1/3/10% table. Stability of one recommendation is local
    robustness, not validation of the assumed noise or kernel.'''),
 ]
@@ -1052,18 +1147,19 @@ Both common class designs have been queried. The scoreboard so far:
 
 | design | (b, H_web) | predicted | returned strength and str/w on estimated-mass basis |
 |---|---|---|---|
-| equation-query beam from Pre-lab 1 | ({EQ_B}, {EQ_H}) | «EQ_PRED» N/g | **{EQ_SW} N/g** ({EQ_N} N) |
-| locked GP-query beam from Pre-lab 2, MUI ψ=1 | ({GP_B}, {GP_H}) | «MUI1_M» N/g | **{GP_SW} N/g** ({GP_N} N) |
+| equation-query beam from Pre-lab 1 | ({EQ_B:.2f}, {EQ_H}) | «EQ_PRED» N/g | **{EQ_SW} N/g** ({EQ_N} N) |
+| locked GP-query beam from Pre-lab 2, MUI ψ=1 | ({GP_B:.2f}, {GP_H}) | «MUI1_M» N/g | **{GP_SW} N/g** ({GP_N} N) |
 
-Both beat the original 14-beam best of «BEST_SW2» N/g. The equation beam became
-the best of 15 at {EQ_SW} N/g — and it is *still* the best of all 16. The GP
-beam returned more raw strength ({GP_N} N vs {EQ_N} N) but spent more mass to
-get it, so on the strength-to-weight basis the scoreboard runs on, it slots in
-second at {GP_SW} N/g. Relative
-to their own predictions, the equation result came in «EQ_BELOW_PCT»% low and the GP
-result «GP_VS_PRED_TEXT». Sit with that pair of facts: the
-winning beam came from the prediction that missed by «EQ_BELOW_PCT»%, and the
-well-calibrated model got beaten. One test settles less than it seems to.
+The equation beam beat the 15-beam handout best of «BEST_SW2» N/g and is the best
+of all 17. The GP beam probed the b = 1.0 edge of the newly opened box and
+came back at {GP_SW} N/g — below the handout best, and close to what the model
+expected there. Relative to their own predictions, the equation result came
+in «EQ_BELOW_PCT»% low and the GP result just «GP_VS_PRED_TEXT». Sit
+with that pair of facts: the winning beam came from the prediction that
+missed by «EQ_BELOW_PCT»%, while the nearly calibrated prediction described a beam not
+worth building. A model can be honest about a mediocre region and still lose
+to an overconfident one that happened to point somewhere better. One test
+settles less than it seems to.
 
 Both returned strengths came from the staff oracle — the model fit to the
 prior test campaign that stands in for the testing machine — so nothing has
@@ -1083,7 +1179,7 @@ setting with a known right answer. The full dashboard:
 | model architecture | `CHOICE` (§3) | `"A plain"` / `"B strength"` / `"C features"` / `"D residual"` | how much physics the model gets, and what quantity it learns — §2 |
 | prediction target | comes with the lane | str/w directly (lanes A, C, D) or raw strength ÷ mass (lane B) | which quantity is the smoother, easier thing to learn — §2 |
 | kernel | `KERNEL` (§3) | `"RBF"` / `"Matern"` | how smooth the true strength surface is — §3 |
-| assumed noise | `NOISE_PCT` (§3) | any percent; class default 3 | how much of beam-to-beam scatter is repeatability rather than real shape — §3 |
+| assumed noise | `NOISE_PCT` (§3) | any percent; class default 3, pooled campaign repeats ≈ 4.4 (Pre-lab 2 §4) | how much of beam-to-beam scatter is repeatability rather than real shape — §3 |
 | acquisition rule | `ACQ` (§4) | `"MUI"` / `"EI"` | how predicted value and uncertainty combine into one pick — §4 |
 | explore vs exploit | `psi` (§4, MUI only) | 0 = pure exploit; larger = more explore | how much a *chance* at a better beam is worth against a safe, good one — §4 |
 
@@ -1096,12 +1192,26 @@ the memo with physical reasoning and stated values.
 One more thing, since this module keeps saying there is no right answer: that
 is a claim about the knobs, not about the grade. The grade follows the
 defense, not the distance from the defaults — a defended default recipe
-outscores an arbitrary exotic one.'''),
+outscores an arbitrary exotic one.
+
+**Which of these are really yours?** Not all six knobs carry the same weight.
+Two are load-bearing decisions your group owns: the **lane** (how physics and
+data combine — the module's central modeling question) and the **risk
+posture** (`ACQ` plus its dial — how aggressively you chase predicted
+performance versus uncertainty). The others — kernel, noise, target scale —
+are assumptions you **stress-test**: after you commit to coordinates, check
+whether they survive the kernel swap and the 1/3/10% noise refits, and report
+what you find. "Our exact optimum moves under reasonable assumptions, but
+every defensible model points at this neighborhood, so we chose a printable
+point inside the stable region" is a stronger engineering conclusion than any
+single recipe. And if your pick does *not* survive — say so: an unstable
+recommendation is exactly when buying information beats chasing the current
+maximum, and a memo that argues that earns its credit.'''),
 code(SRC_CONST + SRC_LOAD + f'''
 new = pd.DataFrame([
-    dict(beam_id=15, b={EQ_B}, H={EQ_H}, strength_N={EQ_N},
+    dict(beam_id=16, b={EQ_B:.2f}, H={EQ_H}, strength_N={EQ_N},
          failure_note="equation-query result; observed morphology not supplied"),
-    dict(beam_id=16, b={GP_B}, H={GP_H}, strength_N={GP_N},
+    dict(beam_id=17, b={GP_B:.2f}, H={GP_H}, strength_N={GP_N},
          failure_note="locked-GP-query result; observed morphology not supplied"),
 ])
 new["weight_g"] = np.nan
@@ -1118,7 +1228,7 @@ Provided complete this time, with the class calibration values baked in.'''),
 code(SRC_PHYS_FULL + f'''
 SY_CAL, K_CAL, TAU_CAL = {CAL_SY:.3e}, {CAL_K}, {CAL_TAU:.3e}   # your Pre-lab 1 calibration
 print("calibrated capacity(2,12) =", round(capacity(2, 12, SY_CAL, K_CAL, TAU_CAL), 1), "N")'''),
-md('''## 2. Pick a lane: four ways to model the same 16 beams
+md('''## 2. Pick a lane: four ways to model the same 17 beams
 
 "Model architecture" here means two choices at once: what the GP sees, and
 what quantity it learns.
@@ -1133,7 +1243,7 @@ what quantity it learns.
 What each lane assumes:
 
 - **A — plain (vanilla GP).** A pure pattern-matcher: str/w is a smooth
-  function of the two geometry numbers and 16 points are enough to learn it.
+  function of the two geometry numbers and 17 points are enough to learn it.
   No physics at all — which also means no physics *errors*. Between data
   points it interpolates; far from data it drifts back toward the mean and
   its error bars balloon. That ballooning is honest, and it is also all the
@@ -1147,7 +1257,7 @@ What each lane assumes:
   extra inputs computed from the calibrated equations: the physics capacity
   and an LTB-to-bending stability ratio. The model can lean on the physics
   where it tracks the data and ignore it where it doesn't — at the cost of
-  learning a 4-D input space from the same 16 points.
+  learning a 4-D input space from the same 17 points.
 - **D — residual.** Physics goes first: compute P_phys from the calibrated
   equations, then let the GP learn only the correction factor
   (measured / physics). Where the equations are right the GP has nothing to
@@ -1157,8 +1267,8 @@ What each lane assumes:
   leave out entirely.
 
 **How to discern:** the leave-one-out (LOO) table below scores each lane on a
-beam it did not see, sixteen times over — a dress rehearsal for predicting
-your un-printed design. Low LOO RMSE is real evidence. It is also 16-point
+beam it did not see, seventeen times over — a dress rehearsal for predicting
+your un-printed design. Low LOO RMSE is real evidence. It is also 17-point
 evidence: a lane that wins by 0.3 N/g is a coin flip; a lane that loses by
 3 N/g is genuinely worse. Following the winner is a defensible move when you
 argue it (for instance: "D wins under both kernels, and my candidate sits
@@ -1172,7 +1282,7 @@ predicts the beams we already have, from very limited data. A model can carry
 big errors in zones that do not matter and still nail the neighborhood of the
 optimum — or the reverse. The table says nothing about how well a lane will
 search the space once Bayesian optimization starts steering it. It is one
-indicator of model accuracy under sixteen points, not a verdict.**'''),
+indicator of model accuracy under seventeen points, not a verdict.**'''),
 code('''from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import ConstantKernel as C, RBF, Matern
 
@@ -1270,7 +1380,7 @@ print("Within about 0.1 N/g of these counts as matching -- library versions")
 print("wobble the fits. Off by 0.5 N/g or more, check your work or talk to a TA.")'''),
 md('''## 3. Rebuild the maps with your knobs
 
-Three knobs live in the next cell. Set them, refit on all 16 beams, and look
+Three knobs live in the next cell. Set them, refit on all 17 beams, and look
 at the surfaces you will decide from.
 
 **`KERNEL` — how smooth do you believe the strength surface is?**
@@ -1285,7 +1395,7 @@ becomes code.
   point speaks a bit less confidently about its neighbors.
 
 How to discern: the LOO table in §2 now scores both kernels, so start there —
-remembering the 16-point caveat. Then ask whether you believe this surface
+remembering the 17-point caveat. Then ask whether you believe this surface
 *has* a crease: the failure-note table says different beams died by different
 mechanisms, which is an argument that it does.
 
@@ -1296,9 +1406,9 @@ NOISE_PCT percent." Small values force the fit to thread every data point —
 every wiggle is treated as real shape. Large values let it smooth through
 them — much of the wiggle is print luck and rig luck. Assuming somewhat more
 noise than you believe — say 5% — can be a deliberate move: it stabilizes and
-smooths the fit, guarding against overfitting sixteen points, at the price of
+smooths the fit, guarding against overfitting seventeen points, at the price of
 muting real features. No cell in this
-notebook can compute the right value: the 16 beams contain no repeated
+notebook can compute the right value: the 17 beams contain no repeated
 geometry, so the data cannot measure its own error bar. The best physical
 anchor available is the staff campaign behind the oracle: four repeat prints
 of one design spanned 548.6 to 566.1 N — about a 3% spread — and pooled
@@ -1313,7 +1423,7 @@ NOISE_PCT = 3           # <<< your assumed repeatability, percent
 
 gpF, fmuF, fsdF, ymF, cfgF = fit_lane(df, CHOICE, alpha=(NOISE_PCT/100)**2,
                                       kernel=KERNEL)
-bg = np.linspace(1.25, 7.0, 60); Hg = np.linspace(5.0, 16.0, 60)
+bg = np.linspace(1.0, 7.0, 63); Hg = np.linspace(5.0, 16.0, 60)
 BB, HH = np.meshgrid(bg, Hg)
 SWg, SDg = predict_sw(gpF, fmuF, fsdF, ymF, BB.ravel(), HH.ravel(),
                       cfgF["target"], cfgF["feats"])
@@ -1328,6 +1438,51 @@ for a, Z, t in [(ax[0], MU, f"posterior median str/w: {CHOICE}, {KERNEL}"),
               label="the two class beams")
     a.set_xlabel("b [mm]"); a.set_ylabel("H_web [mm]"); a.set_title(t); a.legend(fontsize=7)
 plt.tight_layout(); plt.show()'''),
+md("""### The decision map: four panels, one argument
+
+Before choosing, put the module's two models side by side on the same axes.
+The four panels below are the figure most worth reading in this notebook —
+they turn "which model do we trust *here*" into something you can point at:
+
+1. **Calibrated physics** — predicted str/w with the governing-mode boundaries
+   drawn on. Where the boundaries run is where the physics rests on its most
+   fragile assumptions.
+2. **Your GP posterior median** — what the data support, under your knobs.
+3. **Physics minus GP** — the disagreement map. Near-zero where the two
+   stories agree; large where at least one of them is wrong.
+4. **Epistemic sigma** — where the GP is guessing.
+
+Read your candidate against all four: Do the models agree there? Is the
+agreement backed by nearby tests, or is it two extrapolations shaking hands?
+Does the disagreement track a mode boundary? Is the attractive region
+genuinely promising, or merely unexplored? These are card rows 5 and 6, drawn
+instead of written."""),
+
+code("""PHYS = np.array([capacity(b, H, SY_CAL, K_CAL, TAU_CAL) /
+                 estimated_mass_g(b, H)
+                 for b, H in zip(BB.ravel(), HH.ravel())]).reshape(BB.shape)
+MODE = np.array([{"bend": 0, "separation": 1, "LTB": 2}[
+                 gov_mode(b, H, SY_CAL, K_CAL, TAU_CAL)]
+                 for b, H in zip(BB.ravel(), HH.ravel())]).reshape(BB.shape)
+
+fig, ax = plt.subplots(2, 2, figsize=(12, 8.6))
+panels = [(ax[0, 0], PHYS, "calibrated physics str/w [N/g] + mode boundaries", "viridis"),
+          (ax[0, 1], MU, f"GP posterior median str/w [N/g]  ({CHOICE}, {KERNEL})", "viridis"),
+          (ax[1, 0], PHYS - MU, "disagreement: physics minus GP [N/g]", "coolwarm"),
+          (ax[1, 1], STD, "epistemic sigma (log units)", "viridis")]
+vmax = float(np.abs(PHYS - MU).max())
+for a, Z, t, cm in panels:
+    kw = dict(levels=20, cmap=cm)
+    if cm == "coolwarm": kw.update(vmin=-vmax, vmax=vmax)
+    cf = a.contourf(BB, HH, Z, **kw); fig.colorbar(cf, ax=a)
+    a.contour(BB, HH, MODE, levels=[0.5, 1.5], colors="k", linewidths=0.8)
+    a.scatter(df.b, df.H, c="w", edgecolor="k", s=32)
+    a.scatter(df.b.iloc[-2:], df.H.iloc[-2:], c="red", marker="*", s=150)
+    a.set_xlabel("b [mm]"); a.set_ylabel("H_web [mm]"); a.set_title(t, fontsize=10)
+plt.tight_layout(); plt.show()
+print("thin black lines on every panel: where the calibrated physics changes governing mode")
+"""),
+
 md(f'''## 4. Choose your beam *(you write this — graded on the memo, not a checkpoint)*
 
 The maps give you two numbers at every candidate design: `MU`, the predicted
@@ -1356,9 +1511,12 @@ rule* collapses the two maps into one pick. Two rules are wired in:
 How to discern: pick MUI when you want the risk dial in your own hands and
 are prepared to defend a ψ in the memo; pick EI when you would rather let the
 model's probabilities make the trade — and defend *that* delegation instead.
-With the default lane, kernel, and noise, both rules land on the same beam;
-if your knob settings make them split, the disagreement itself is worth a
-memo sentence.
+With the default lane, kernel, and noise, the two rules split: MUI ψ = 1
+exploits the thin-b ridge, while EI — measuring improvement over a {EQ_SW}
+incumbent it doubts it can beat nearby — gambles on the untested high-web
+corner near «S1_EI_NEAR». The disagreement is itself evidence: it tells you
+the model sees no cheap wins left, and your memo should say which side of
+that bet your group takes and why.
 
 Whatever the rule says, you hold a veto. The calibrated physics (`capacity`)
 and the failure-note table are also in front of you — the standard move is to
@@ -1367,15 +1525,17 @@ where?).
 
 For orientation only: the *default* recipe — lane A, RBF, 3% noise, MUI
 ψ = 1 — lands at **(b ≈ «DEF_B», H_web ≈ «DEF_H»)**. You are free to submit
-that; you are also free to beat it. Say why either way.
+that; you are also free to beat it. Say why either way. Two things to
+notice about it before you adopt it: it sits 0.25 mm from the tested
+equation beam (beam 16 at ({EQ_B:.2f}, {EQ_H})), and it sits on the b = 1.0
+boundary — the geometry family where beams 12, 14, and 15 peeled apart at
+the flange-web interface, and where the calibrated physics calls the mode
+*separation*.
 
-One deliberate difference from Pre-lab 2: the class-query steps *excluded*
-already-tested designs, because a shared oracle query spent on a known point is
-wasted. Your print is yours to spend, so the default recipe above applies no
-such exclusion«DEF_NEAR_TXT». **If your pick lands within the Pre-lab 2
-exclusion radius (|Δb| < 0.15 mm, |ΔH_web| < 0.30 mm) of a tested beam, the
-memo must say what a near-replicate print buys you.** Verifying a suspiciously
-good result is a legitimate answer; sleepwalking into a repeat is not.'''),
+**If your pick lands within |Δb| < 0.15 mm and |ΔH_web| < 0.30 mm of a
+tested beam, the memo must say what a near-replicate print buys you.**
+Under a 3–4% test scatter, verifying a suspiciously good result is a
+legitimate answer; sleepwalking into a repeat is not.'''),
 code('''from scipy.stats import norm
 
 ACQ = "MUI"          # <<< your rule: "MUI" | "EI"
@@ -1398,22 +1558,35 @@ print(f"  posterior median {MU[i]:.1f} N/g,  epistemic sigma_log {STD[i]:.3f},  
 print(f"  physics mode there: {gov_mode(b_final, H_final, SY_CAL, K_CAL, TAU_CAL)}")'''),
 md('''## Memo
 
-Write it in markdown cells below this one, answering these four prompts in
-order — about half a page in total. It covers only these prompts; the pre-lab
-questions stay in their own notebooks.
+**File the decision card first.** Fill rows 1–9 of
+`ME323_Module1_DecisionCard.md` and its preregistration table, and submit them
+with this notebook — the preregistration is due before your beam is printed,
+and graders read the card before the memo. The prompts below map onto card
+rows; the card is the skeleton, the memo is the argument.
+
+Write the memo in markdown cells below this one, answering these six prompts
+in order — about half a page for 1–4, a few sentences each for 5–6. It covers
+only these prompts; the pre-lab questions stay in their own notebooks.
 
 1. The two class beams: use the generated scoreboard percentages, with their
    stated denominators. What does each miss reveal, and which miss is costlier
    for the intended design decision?
-2. Your lane and kernel: what did the LOO table say under both kernels, and
-   did you follow it? If you chose C or D, what does physics contribute
-   between the observations?
-3. Risk: name your acquisition rule (`ACQ`, plus `psi` if MUI) and your
+2. Your lane: what did the LOO table say under both kernels, and did you
+   follow it? If you chose C or D, what does physics contribute between the
+   observations? (Card rows 3 and 6.)
+3. Risk: name your acquisition rule (`ACQ`, plus its dial) and your
    `NOISE_PCT`, and use the printed posterior median, epistemic sigma, and
-   final coordinates to explain whether you exploited or explored. Is the
-   main risk a weak beam or a model that is confidently wrong?
+   final coordinates to explain whether you exploited, explored, or
+   replicated. Is the main risk a weak beam or a model that is confidently
+   wrong? (Card row 7.)
 4. Limits: compare your coordinates with the thin-web flange-web-separation
-   notes. Where could that unmodeled mechanism affect your design?
+   notes and with the four-panel decision map. Where could that unmodeled
+   mechanism affect your design? (Card rows 5–6, 9.)
+5. Stress test: rerun §3–4 with the other kernel and at 1% and 10% noise. Did
+   your coordinates survive? State either the stable-neighborhood conclusion
+   or the case for buying information instead.
+6. Name the **three figures** (by section) that carry your argument, one
+   sentence each on the work it does. Graders may ignore every other plot.
 
 The default-parameter design is already computed by the section-4 code. You do
 not need a new optimization cell unless you choose a different decision rule.'''),
@@ -1422,12 +1595,12 @@ key_md('''## KEY: memo targets
 1. The scoreboard supplies the actual errors. Overprediction is a capacity-risk
    problem; underprediction is usually a mass/opportunity-cost problem. A strong
    answer distinguishes the denominator instead of comparing ambiguous
-   percentages — and notices that the best beam of 16 came from the model with
+   percentages — and notices that the best beam of 17 came from the model with
    the larger miss.
 2. Report the generated LOO ordering and at least one beam-level miss. The lane
    ordering holds under both kernels (D residual best at «LOO_D_RBF» RBF /
-   «LOO_D_MAT» Matérn; B strength worst at «LOO_B_RBF» / «LOO_B_MAT»). Matérn
-   helps the residual lane a little and hurts the plain lane a little; a strong
+   «LOO_D_MAT» Matérn; B strength worst at «LOO_B_RBF» / «LOO_B_MAT»; A plain a close second at
+   «LOO_A_RBF» under both). The kernel barely moves lanes A and D here; a strong
    answer ties the kernel choice to a belief about failure-mode creases in the
    surface rather than treating 0.1–0.3 N/g LOO differences as decisive.
    Following the lowest RMSE is acceptable but not mandatory if the model-risk
@@ -1437,11 +1610,15 @@ key_md('''## KEY: memo targets
    scattered interface strength).
 3. The final cell prints all required evidence. Larger `psi` spends more of the
    decision on epistemic uncertainty. Note for grading: at the default lane,
-   kernel, and noise, MUI ψ=1 and EI select the same point (b ≈ «DEF_B»,
-   H_web ≈ «DEF_H»), so "I used EI" is not by itself a differentiated decision —
-   credit students who explain *why* their rule picked what it did, and who
-   know what their `NOISE_PCT` assumption did to the maps. The serious risk is
-   confident extrapolation into an unmodeled failure region.
+   kernel, and noise, MUI ψ=1 and EI now *split* — MUI exploits the thin-b
+   ridge at (b ≈ «DEF_B», H_web ≈ «DEF_H»); EI chases the untested high-web corner near
+   «S1_EI_NEAR», because the model doubts anything nearby beats the «EQ_SW_T»
+   incumbent. Neither pick is automatically right: the MUI point sits in
+   separation-note territory and near-replicates beam 16; the EI point is a
+   long-shot the failure notes (beam 9 twisted off the stand at thin-b,
+   high-H) argue against. Credit students who name the split, say which risk
+   they took, and know what their `NOISE_PCT` did to the maps. The serious
+   risk is confident extrapolation into an unmodeled failure region.
 4. Flange-web separation occurs in thin-web examples and is absent from the
    yield/LTB equations. Students should locate their design relative to those
    beams rather than claim the mode is impossible.'''),
@@ -1474,12 +1651,20 @@ Write before computing. Corrections earn credit; unsupported bluffing does not.
 4. The equation query returned below its prediction; the GP query returned
    above its central prediction. Give one plausible reason for each miss.
 5. Name the four modeling lanes from Submission 1 and the one-line idea of each.'''),
-md('''## 1. Your beam's test result'''),
+md("""## 1. Your beam's test result
+
+**Two things before you type numbers in.** First, the peak load you enter is
+one your group reduced yourselves from your beam's raw force–displacement
+trace — the same reduction you practiced on four campaign traces in Pre-lab 1
+§1b. Look at your curve's shape (cliff or gradual?) before trusting the peak.
+Second, put your preregistration table (filed with Submission 1) next to the
+result *before* reading further: the reflection below is graded against what
+your group predicted on record, not against what is easy to explain now."""),
 code(SRC_CONST + SRC_LOAD + f'''
 new = pd.DataFrame([
-    dict(beam_id=15, b={EQ_B}, H={EQ_H}, strength_N={EQ_N},
+    dict(beam_id=16, b={EQ_B:.2f}, H={EQ_H}, strength_N={EQ_N},
          failure_note="equation-query result; observed morphology not supplied"),
-    dict(beam_id=16, b={GP_B}, H={GP_H}, strength_N={GP_N},
+    dict(beam_id=17, b={GP_B:.2f}, H={GP_H}, strength_N={GP_N},
          failure_note="locked-GP-query result; observed morphology not supplied"),
 ])
 new["weight_g"] = np.nan
@@ -1522,7 +1707,7 @@ model-form error, print-to-print variability, and an unmodeled failure
 mechanism. One test does not identify which.'''),
 md('''## 2. The lightweight challenge: hold 700 N, weigh as little as possible
 
-Same 16 beams, same tools — different objective. Now strength is a
+Same 17 beams, same tools — different objective. Now strength is a
 **constraint**, not the prize. The class-default confidence rule: require the
 model's lower posterior-predictive quantile for one future beam to clear the
 target. Epistemic uncertainty and 3% aleatory observation scatter are
@@ -1537,7 +1722,14 @@ You may argue a different z than 2 in your memo — that is a risk posture, not
 a math fact. Padding is judged the same way: extra grams beyond the z = 2
 design are fine when the memo says what they buy (a larger z, a named
 model-form worry) and cost credit when the only defense is a bare safety
-factor.'''),
+factor.
+
+**Why 700 N?** An instructional spec, not a customer requirement: the target
+was chosen so the feasibility boundary crosses the middle of the tested
+design space — handout strengths run 314 to 949 N, so some tested beams clear
+it and some do not, and the lower-bound constraint genuinely binds. Treat it
+the way practicing engineers treat a spec they did not set: as fixed, with
+your reasoning graded against it.'''),
 code(SRC_PHYS_FULL + f'''
 SY_CAL, K_CAL, TAU_CAL = {CAL_SY:.3e}, {CAL_K}, {CAL_TAU:.3e}
 P_TARGET = 700.0
@@ -1554,7 +1746,7 @@ gp = GaussianProcessRegressor(C(1.0, (1e-3, 1e3))*RBF([1.0, 1.0], (1e-1, 30.0)),
                               alpha=0.03**2, normalize_y=False,
                               n_restarts_optimizer=5, random_state=0).fit((X-fmu)/fsd, y-ymean)
 
-bg = np.linspace(1.25, 7.0, 60); Hg = np.linspace(5.0, 16.0, 60)
+bg = np.linspace(1.0, 7.0, 63); Hg = np.linspace(5.0, 16.0, 60)
 BB, HH = np.meshgrid(bg, Hg)
 Xg = np.column_stack([BB.ravel(), HH.ravel()])
 mu_c, std = gp.predict((Xg - fmu)/fsd, return_std=True)
@@ -1634,8 +1826,8 @@ note_mine = "synthetic KEY example -- not a real test"
 print(f"KEY demo beam: ({b_mine}, {H_mine}), {P_mine} N (synthetic)")'''),
 md('''## 3. What your beam changes: refit with your own result
 
-The lightweight design above deliberately used only the 16 frozen class beams,
-so everyone's checkpoint matches. But your group now owns a 17th data point.
+The lightweight design above deliberately used only the 17 frozen class beams,
+so everyone's checkpoint matches. But your group now owns an 18th data point.
 Fold it in, refit the same class-default model, and see what actually moves:
 the 700 N design, the best-strength-to-weight pick, or neither. There is no
 checkpoint here — the outcome depends on your beam, and it is graded through
@@ -1643,15 +1835,15 @@ the memo.'''),
 code('''if None in (b_mine, H_mine, P_mine):
     print("Enter your beam in section 1 first; this cell is skipped without it.")
 else:
-    mine = pd.DataFrame([dict(beam_id=17, b=b_mine, H=H_mine, strength_N=P_mine,
+    mine = pd.DataFrame([dict(beam_id=18, b=b_mine, H=H_mine, strength_N=P_mine,
                               weight_g=mass_measured_mine,
                               mass_est_g=estimated_mass_g(b_mine, H_mine),
                               failure_note=note_mine)])
-    df17 = pd.concat([df, mine], ignore_index=True)
-    df17["str_to_weight"] = df17.strength_N / df17.mass_est_g
-    X17 = df17[["b", "H"]].values
+    df18 = pd.concat([df, mine], ignore_index=True)
+    df18["str_to_weight"] = df18.strength_N / df18.mass_est_g
+    X17 = df18[["b", "H"]].values
     fmu17, fsd17 = X17.mean(0), X17.std(0) + 1e-12
-    y17 = np.log(df17.str_to_weight.values); ym17 = y17.mean()
+    y17 = np.log(df18.str_to_weight.values); ym17 = y17.mean()
     gp17 = GaussianProcessRegressor(
         C(1.0, (1e-3, 1e3))*RBF([1.0, 1.0], (1e-1, 30.0)),
         alpha=0.03**2, normalize_y=False,
@@ -1665,16 +1857,16 @@ else:
     mu_at_mine, _ = gp.predict((np.array([[b_mine, H_mine]])-fmu)/fsd,
                                return_std=True)
     pred_N_at_mine = np.exp(mu_at_mine[0]+ymean)*estimated_mass_g(b_mine, H_mine)
-    print("lightweight design, 16 beams -> 17 beams:")
+    print("lightweight design, 17 beams -> 18 beams:")
     print(f"  before: b={b_lt:.2f}, H_web={H_lt:.2f}, mass={mass_grid[i]:.1f} g")
     print(f"  after:  b={Xg[i17,0]:.2f}, H_web={Xg[i17,1]:.2f}, "
           f"mass={mass_grid[i17]:.1f} g")
-    print("best posterior-median str/w point, 16 -> 17 beams:")
+    print("best posterior-median str/w point, 17 -> 18 beams:")
     print(f"  before: ({Xg[i_sw16,0]:.2f}, {Xg[i_sw16,1]:.2f});  "
           f"after: ({Xg[i_sw17,0]:.2f}, {Xg[i_sw17,1]:.2f})")
-    print(f"  16-beam model median at your design: {pred_N_at_mine:.0f} N; "
+    print(f"  17-beam model median at your design: {pred_N_at_mine:.0f} N; "
           f"your measured strength: {P_mine:.0f} N")
-    print("If nothing moved: one test rarely re-shapes a 16-beam posterior far")
+    print("If nothing moved: one test rarely re-shapes a 17-beam posterior far")
     print("from the tested point. Whether it SHOULD have moved more is a memo")
     print("question about the noise and length-scale assumptions, not a code bug.")'''),
 md('''## Memo
@@ -1682,8 +1874,14 @@ md('''## Memo
 Write it in markdown cells below this one, answering the prompts in order —
 400 to 800 words. This memo is the module's primary assessed artifact.
 
+0. Card row 10: before the prompts, complete the **Update** row of your
+   decision card — what did the result change: your model, your confidence,
+   or your next design? One assumption, named.
 1. Reflection: report measured and estimated mass, use the model-basis ratio for
-   the interval check, and compare the observed failure note with the modeled proxy.
+   the interval check, and compare the observed strength and failure note with
+   what your group **preregistered** — the interval, the expected morphology,
+   and the named most-likely-to-break assumption. Was the surprise (or its
+   absence) the one you priced?
 2. Margin: use the printed posterior median, lower bound, median-only design,
    robust design, and closest-in-mass lighter infeasible candidate. State the
    comparison in newtons and grams.
@@ -1732,6 +1930,9 @@ key_md('''## KEY: memo targets
 SOLUTIONS = {
     'df["str_to_weight"] = ____    # >>> FILL IN: strength divided by estimated mass':
         'df["str_to_weight"] = df.strength_N / df.mass_est_g',
+    """peak_N = ____    # >>> FILL IN: reduce each beam's trace to its peak force
+                 #     (hint: group tr by beam_id and take the max of force_N)""":
+        'peak_N = tr.groupby("beam_id")["force_N"].max()    # FILL IN (solved)',
     '    return ____    # >>> FILL IN: P_bend; section_props is SI but L is in mm':
         '    return 4*sy*p["Ix"] / (p["c"] * L/1e3)',
     '    return ____    # >>> FILL IN: 2 * tau_i * Ix * t_w / Q_f  (t_w is p["b"])':
@@ -1772,16 +1973,34 @@ def run_solution(cells, extra_replacements=()):
 print("running Pre-lab 1 solution ...")
 ns1, _ = run_solution(P1)
 assert 40e6 < ns1["SY_CAL"] < 100e6 and 0.05 < ns1["K_CAL"] < 1.0, "calibration off the rails"
+assert abs(ns1["SY_CAL"]/CAL_SY - 1) < 0.005 and abs(ns1["K_CAL"] - CAL_K) < 0.002 \
+    and abs(ns1["TAU_CAL"]/CAL_TAU - 1) < 0.005, \
+    (ns1["SY_CAL"], ns1["K_CAL"], ns1["TAU_CAL"],
+     "P1's derived calibration no longer matches the baked CAL_* header constants -- update them")
 assert 3e6 < ns1["TAU_CAL"] < 45e6, ns1["TAU_CAL"]
 assert (ns1["b_eq"], ns1["H_eq"]) == (EQ_B, EQ_H), \
     f"equation design {(ns1['b_eq'], ns1['H_eq'])} != frozen ({EQ_B}, {EQ_H}) - " \
     "update the EQ_* constants from the run12 dry run"
 best_row = ns1["df"].loc[ns1["df"].str_to_weight.idxmax()]
+seed_sw = float(ns1["df"].loc[ns1["df"].beam_id.eq(15), "str_to_weight"].iloc[0])
+assert abs(seed_sw - 34.41) < 0.05, seed_sw
+_smin, _smax = float(ns1["df"].strength_N.min()), float(ns1["df"].strength_N.max())
+assert (round(_smin), round(_smax)) == (314, 949), (_smin, _smax)  # S2's "314 to 949 N" claim
+# claims quoted in the P1 KEY memo targets: the three-way capacity knife edge at
+# the equation design, and the ~14% overprediction of seed beam 15
+_p_eq = ns1["section_props"](EQ_B, EQ_H)
+_caps = (ns1["P_bend"](_p_eq, ns1["SY_CAL"]),
+         ns1["P_sep"](_p_eq, ns1["TAU_CAL"]),
+         ns1["P_LTB"](_p_eq, ns1["SY_CAL"], ns1["K_CAL"]))
+assert max(_caps)/min(_caps) < 1.02, _caps
+_over15 = ns1["capacity"](1.0, 12.5, ns1["SY_CAL"], ns1["K_CAL"], ns1["TAU_CAL"])/475.0 - 1
+assert 0.08 < _over15 < 0.20, _over15
 mape_nom = (ns1["df"].cap_nominal/ns1["df"].strength_N - 1).abs().mean()*100
 initial_best_sw = float(best_row.str_to_weight)
 eq_below_pct = 100*(ns1["sw_eq"]-EQ_SW)/ns1["sw_eq"]
 assert abs(initial_best_sw-36.88) < 0.01, initial_best_sw
-assert EQ_SW > initial_best_sw and GP_SW > initial_best_sw   # both queries beat the handout best
+assert EQ_SW > initial_best_sw and GP_SW < initial_best_sw \
+    # widened box: the GP probe under-performs the handout best (deliberate lesson in S1's header)
 assert -50 < eq_below_pct < 60, eq_below_pct
 
 print("running Pre-lab 2 solution ...")
@@ -1800,18 +2019,9 @@ noise_recs = [(int(r["noise_pct"]), round(float(r["b"]), 2),
                round(float(r["H_web"]), 2))
               for r in ns2["noise_rows"]]
 uniq = {r[1:] for r in noise_recs}
-triplet = ";  ".join(f"{p}% -> ({b_}, {H_})" for p, b_, H_ in noise_recs)
-if len(uniq) == 1:
-    NOISE_TXT = ("all three settings agree on the same beam; this "
-                 "recommendation is locally insensitive to the noise dial")
-elif noise_recs[0][1:] == noise_recs[-1][1:]:
-    NOISE_TXT = (f"the three settings do not all agree ({triplet}). Note the "
-                 "pattern: the dependence is not monotone -- the 1% and 10% "
-                 "choices coincide and only the middle setting differs, by "
-                 "one grid step. Near-robustness of the argmax is a local "
-                 "fact, not a vote for any noise value")
-else:
-    NOISE_TXT = f"the recommendation depends on the assumed noise: {triplet}"
+assert uniq == {(round(GP_B, 2), round(GP_H, 2))}, \
+    f"noise refits no longer all agree on ({GP_B}, {GP_H}): {noise_recs} -- " \
+    "rewrite the P2 noise-checkpoint text and the locked-cell narrative"
 
 print("running Submission 1 solution ...")
 ns3, out3 = run_solution(S1)
@@ -1827,25 +2037,27 @@ for ln in out3.splitlines():
         lane_name, val = t.rsplit(":", 1)
         loo[_cur][lane_name.strip()] = float(val.replace("N/g", "").strip())
 assert set(loo) == {"RBF", "Matern"} and all(len(v) == 4 for v in loo.values()), loo
+assert abs(loo["RBF"]["A plain"] - loo["Matern"]["A plain"]) < 0.1, loo  # KEY: "A plain ... under both"
 def loo_line_txt(kern):
     return ",  ".join(f"{lane} {loo[kern][lane]:.2f}" for lane in
                       ("A plain", "B strength", "C features", "D residual")) + " N/g"
-# the KEY asserts MUI psi=1 and EI agree at the default knobs -- verify it
+# the S1 section-4 and KEY text say MUI psi=1 and EI SPLIT at the default knobs,
+# MUI on the b=1.0 ridge and EI in the untested high-web corner -- verify all of it
 from scipy.stats import norm as _norm
 _best = np.log(ns3["df"].str_to_weight.max())
 _zz = (np.log(ns3["MU"]) - _best) / ns3["STD"]
 _score_ei = ns3["STD"] * (_zz*_norm.cdf(_zz) + _norm.pdf(_zz))
 _iei = np.unravel_index(np.argmax(_score_ei), _score_ei.shape)
-assert (abs(float(ns3["BB"][_iei]) - ns3["b_final"]) < 0.005
-        and abs(float(ns3["HH"][_iei]) - ns3["H_final"]) < 0.005), \
-    "EI default pick no longer matches MUI psi=1 -- rewrite the S1 section-4/KEY text"
+_ei_b, _ei_H = float(ns3["BB"][_iei]), float(ns3["HH"][_iei])
+assert (abs(_ei_b - ns3["b_final"]) > 0.005 or abs(_ei_H - ns3["H_final"]) > 0.005), \
+    "EI and MUI psi=1 agree again at the default knobs -- rewrite the S1 section-4/KEY split text"
+assert abs(ns3["b_final"] - 1.0) < 0.005 and _ei_H > ns3["H_final"] + 1.0, \
+    (ns3["b_final"], _ei_b, _ei_H)
+assert abs(float(np.hypot(ns3["b_final"] - EQ_B, ns3["H_final"] - EQ_H)) - 0.25) < 0.05, \
+    "the 'sits 0.25 mm from the tested equation beam' sentence in S1 section 4 is stale"
+S1_EI_NEAR = f"({_ei_b:.2f}, {_ei_H:.1f})"
 print(f"S1 default-lane final: ({ns3['b_final']:.2f}, {ns3['H_final']:.2f}); "
-      "EI agreement verified")
-near = [(int(r.beam_id), r.b, r.H) for _, r in ns3["df"].iterrows()
-        if abs(ns3["b_final"] - r.b) < 0.15 and abs(ns3["H_final"] - r.H) < 0.30]
-DEF_NEAR_TXT = (
-    f" -- and in fact its pick lands inside that radius, next to tested beam "
-    f"{near[0][0]} at ({near[0][1]:g}, {near[0][2]:g})" if near else "")
+      f"EI split verified, EI pick near {S1_EI_NEAR}")
 
 print("running Submission 2 solution ...")
 ns4, _ = run_solution(S2)
@@ -1869,11 +2081,12 @@ TOKENS = {
     "«CAL_TAU_MPA»": f"{ns1['TAU_CAL']/1e6:.2f}",
     "«CAL_SY_E»": f"{ns1['SY_CAL']:.3e}",
     "«CAL_TAU_E»": f"{ns1['TAU_CAL']:.3e}",
-    "«EQ_B_CK»": f"{EQ_B:g}", "«EQ_H_CK»": f"{EQ_H:g}",
+    "«EQ_B_CK»": f"{EQ_B:.2f}", "«EQ_H_CK»": f"{EQ_H:g}",
     "«EQ_PRED»": f"{ns1['sw_eq']:.1f}",
     "«MUI1_B»": f"{x1[0]:.2f}", "«MUI1_H»": f"{x1[1]:.2f}", "«MUI1_M»": f"{m1:.1f}",
     "«EI_B»": f"{ei_b:.2f}", "«EI_H»": f"{ei_H:.2f}",
-    "«NOISE_BEHAVIOR»": NOISE_TXT,
+    "«SEED_SW»": f"{seed_sw:.2f}",
+    "«EQ_SW_T»": f"{EQ_SW:g}",
     "«LOO_RBF»": loo_line_txt("RBF"),
     "«LOO_MATERN»": loo_line_txt("Matern"),
     "«LOO_D_RBF»": f"{loo['RBF']['D residual']:.2f}",
@@ -1881,7 +2094,8 @@ TOKENS = {
     "«LOO_B_RBF»": f"{loo['RBF']['B strength']:.2f}",
     "«LOO_B_MAT»": f"{loo['Matern']['B strength']:.2f}",
     "«DEF_B»": f"{ns3['b_final']:.2f}", "«DEF_H»": f"{ns3['H_final']:.2f}",
-    "«DEF_NEAR_TXT»": DEF_NEAR_TXT,
+    "«S1_EI_NEAR»": S1_EI_NEAR,
+    "«LOO_A_RBF»": f"{loo['RBF']['A plain']:.2f}",
     "«LT_B»": f"{LT_B:.2f}", "«LT_H»": f"{LT_H:.2f}", "«LT_M»": f"{LT_M:.1f}",
 }
 
@@ -1948,7 +2162,7 @@ print(f"  P1: best beam {TOKENS['«BEST_ID»']} ({TOKENS['«BEST_B»']},{TOKENS[
       f"cal ({ns1['SY_CAL']/1e6:.1f} MPa, {ns1['K_CAL']:.3f}, "
       f"{ns1['TAU_CAL']/1e6:.2f} MPa);  eq ({EQ_B}, {EQ_H})")
 print(f"  P2: MUI1 ({TOKENS['«MUI1_B»']}, {TOKENS['«MUI1_H»']}) pred {TOKENS['«MUI1_M»']};  "
-      f"EI ({TOKENS['«EI_B»']}, {TOKENS['«EI_H»']});  noise: {NOISE_TXT[:70]}...")
+      f"EI ({TOKENS['«EI_B»']}, {TOKENS['«EI_H»']});  noise refits all agree on the locked design")
 print(f"  S1: LOO RBF {loo_line_txt('RBF')};  Matern {loo_line_txt('Matern')};  "
       f"default final ({TOKENS['«DEF_B»']}, {TOKENS['«DEF_H»']})")
 print(f"  S2: lightweight ({TOKENS['«LT_B»']}, {TOKENS['«LT_H»']}) mass {TOKENS['«LT_M»']} g")
