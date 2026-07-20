@@ -1330,12 +1330,14 @@ rule* collapses the two maps into one pick. Two rules are wired in:
   `psi = 0` ignores uncertainty and picks the best posterior median — pure
   exploitation. `psi = 1` credits each design one sigma of upside. Large
   `psi` chases the unexplored corners of the map. There is no correct value:
-  ψ prices how much a *chance* at a better beam is worth to your group
-  against a safe, good one. A priced ψ sounds like: "ψ = 0.5 — we get one
-  print, the incumbent already sits at {EQ_SW} N/g, and a gamble that loses
-  leaves us nothing, so upside is worth half a sigma to us." An unpriced one
-  sounds like: "ψ = 1, because that is the default." Any value can earn full
-  credit; only the second kind of sentence cannot.
+  ψ says how much your group values a *chance* at a better beam over a safe,
+  good one. A well-reasoned ψ sounds like: "ψ = 0.5 — we get
+  one print, the best beam tested so far already gives {EQ_SW} N/g, and a
+  gamble that fails leaves us nothing to show for it, so we mostly stick with
+  what the model predicts well and give unexplored designs only a small
+  benefit of the doubt." A weak one sounds like: "ψ = 1, because that is the
+  default." Any value can earn full credit; only the second kind of reasoning
+  cannot.
 - **`ACQ = "EI"` — expected improvement.** Averages the improvement over the
   incumbent best tested beam ({EQ_SW} N/g) under the model's own uncertainty.
   No dial: it trades explore against exploit automatically, and it goes to
@@ -1523,8 +1525,9 @@ P_{lo}(b,H)=e^{\\mu_{\\ln P}(b,H)-2\\sigma_{total}(b,H)}
 Among designs that pass, take the lightest. **FILL IN** the two marked lines.
 You may argue a different z than 2 in your memo — that is a risk posture, not
 a math fact. Padding is judged the same way: extra grams beyond the z = 2
-design are fine when the memo prices them (a larger z, a named model-form
-worry) and cost credit when the only defense is a bare safety factor.'''),
+design are fine when the memo says what they buy (a larger z, a named
+model-form worry) and cost credit when the only defense is a bare safety
+factor.'''),
 code(SRC_PHYS_FULL + f'''
 SY_CAL, K_CAL, TAU_CAL = {CAL_SY:.3e}, {CAL_K}, {CAL_TAU:.3e}
 P_TARGET = 700.0
