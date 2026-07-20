@@ -1165,7 +1165,14 @@ argue it (for instance: "D wins under both kernels, and my candidate sits
 inside the tested region, where its physics is anchored by data"). So is
 overruling it (for instance: "D wins LOO, but I am designing near the thin-web
 region where its physics is blind to separation"). Either can earn full
-credit; a lane chosen with no argument cannot.'''),
+credit; a lane chosen with no argument cannot.
+
+**Be clear about what these scores are: they measure how well each lane
+predicts the beams we already have, from very limited data. A model can carry
+big errors in zones that do not matter and still nail the neighborhood of the
+optimum — or the reverse. The table says nothing about how well a lane will
+search the space once Bayesian optimization starts steering it. It is one
+indicator of model accuracy under sixteen points, not a verdict.**'''),
 code('''from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import ConstantKernel as C, RBF, Matern
 
@@ -1287,7 +1294,10 @@ The GP receives `alpha = (NOISE_PCT/100)**2` in log space, which reads as:
 "an identical beam, printed and tested again, comes back within roughly
 NOISE_PCT percent." Small values force the fit to thread every data point —
 every wiggle is treated as real shape. Large values let it smooth through
-them — much of the wiggle is print luck and rig luck. No cell in this
+them — much of the wiggle is print luck and rig luck. Assuming somewhat more
+noise than you believe — say 5% — can be a deliberate move: it stabilizes and
+smooths the fit, guarding against overfitting sixteen points, at the price of
+muting real features. No cell in this
 notebook can compute the right value: the 16 beams contain no repeated
 geometry, so the data cannot measure its own error bar. The best physical
 anchor available is the staff campaign behind the oracle: four repeat prints
