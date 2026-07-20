@@ -239,6 +239,14 @@ def build_lecture1():
         "Since M_cr ~ 1/k^2, a small change swings LTB hard — and the calibrated equation optimum sits on a bend-LTB knife edge (capacities within ~1%). k does not transfer between fixtures: confirm it on ours before betting on that optimum.",
     ])
 
+    bullets_slide(prs, "LTB: what you must own, and what is background", [
+        "You just saw Iy, J, Cw, warping, load height, and effective length. Here is exactly what you are responsible for:",
+        ("Yours: what LTB is (a tall thin web tipping sideways before the material yields), when it competes (thin b, large H_web), what k means physically, and why a calibrated k does not transfer between fixtures.", 1),
+        ("Yours: reading the capacity plot — which branch governs where, and how much margin the runner-up has.", 1),
+        ("Background: deriving Iy, J, Cw, or the Mcr formula. The code is supplied; you will never derive or re-implement it in this module.", 1),
+        "The test of understanding is not the derivation. It is: what happens to the LTB branch if the fixture braces the compression flange, and would you still trust the equation optimum?",
+    ], size=19)
+
     image_slide(prs, "Which mode drives?", "figures/fig_failure_mode_map.png",
                 caption="Tall thin webs tip (LTB). Short thin webs are separation-limited: junction shear flow beats the layer-line bond. The middle bends.")
 
@@ -251,7 +259,7 @@ def build_lecture1():
     ], size=20)
 
     image_slide(prs, "One assumption, two different beams", "figures/fig_two_optima.png",
-                caption="Illustration: handbook starting values versus the class calibration (66.8 MPa, k = 0.377, tau_i = 17.9 MPa), which moves the equation optimum to (1.25, 13.20).")
+                caption="Illustration: handbook starting values versus the class calibration (66.8 MPa, k = 0.377, tau_i = 16.8 MPa), which moves the equation optimum to (1.10, 13.25).")
 
     bullets_slide(prs, "Where this leaves us", [
         "The equations are useful but partial:",
@@ -262,8 +270,13 @@ def build_lecture1():
         "A data-driven model that carries its own uncertainty is built for this. Next lecture: Gaussian Processes and Bayesian optimization.",
     ], size=20)
 
+    image_slide(prs, "The loop this module runs", "figures/fig_workflow_end2end.png",
+                caption="Physics says what should happen and where failure lives. The data model says what the tests support and where we're still uncertain. Your judgment decides what to build. The test says what we got wrong.",
+                max_h=4.1)
+
     bullets_slide(prs, "Before next time: Pre-lab 1", [
         "In ME323_Module1_Prelab1_FailureModes:",
+        ("reduce four raw force-displacement traces to strength — including deciding what beam 9's \"twisted off the test stand\" peak really measures,", 1),
         ("load the beam data, compute strength-to-weight,", 1),
         ("code flexural yield and the junction shear-flow separation check (start tau_i at the bulk guess 43.9 MPa),", 1),
         ("compare dominant-mode proxies with measured strengths and failure notes, then calibrate (sigma_y, k, tau_i),", 1),
@@ -286,7 +299,7 @@ def build_lecture2():
     bullets_slide(prs, "Where Pre-lab 1 left you", [
         ("You coded three capacity branches — flexural yield, junction shear-flow separation, LTB — calibrated (sigma_y, k, tau_i), and took the minimum: one capacity number per design.", 1),
         ("The parity plot showed where that number holds and where it misses.", 1),
-        ("Your optimizer picked b = 1.25, H_web = 13.2 mm: predicted 47.8 N/g. Staff queried the oracle — a frozen model fit to a prior campaign of real bend tests, standing in for the testing machine — and it returned 515.6 N = 39.09 N/g on the estimated-mass basis. There the bend and LTB capacities tie within ~1%, so the 'bend' proxy is a knife-edge call.", 1),
+        ("Your optimizer picked b = 1.10, H_web = 13.25 mm: predicted 48.7 N/g. Staff queried the oracle — a frozen model fit to a prior campaign of real bend tests, standing in for the testing machine — and it returned 482.6 N = 38.02 N/g on the estimated-mass basis. There all three mode capacities tie within ~1%, so the 'LTB' proxy is a knife-edge call.", 1),
         "The physics gave you a point estimate sitting exactly on a mode boundary — the region you trust it least. The missing ingredient is a statement of confidence.",
     ], size=20)
 
@@ -306,7 +319,7 @@ def build_lecture2():
     ])
 
     image_slide(prs, "A Gaussian is a belief about one beam", "figures/fig_gauss_strength.png",
-                source="Where does 3% come from? Four repeat prints at (1.3, 12.8) spanned 548.6-566.1 N; pooled over all repeats the scatter runs ~4% with session/printer structure. 3% is the stated class working value.")
+                source="Where does 3% come from? Four repeat prints at (1.3, 12.8) spanned 548.6-566.1 N; pooled over all repeats the scatter runs ~4.4% with session/printer structure. 3% is the stated class working value.")
     image_slide(prs, "Two beams at once: covariance", "figures/fig_mvn_correlation.png",
                 caption="Nearby designs share material, geometry, and physics, so their strengths move together.",
                 source="The covariance matrix writes that down. This is the piece the GP is built on.")
@@ -327,7 +340,7 @@ def build_lecture2():
                 source="No single right answer; there are defensible and indefensible ones.")
     image_slide(prs, "So is the noise", "figures/fig_noise_fits.png",
                 caption="We assume 3% as the class working value. Pre-lab 2 refits at 1%, 3%, and 10%.",
-                source="The recommendation barely moves: 1% and 10% both pick (1.44, 13.39); 3% picks (1.44, 13.20) — one grid step, not monotone. Sensitivity evidence, not proof of the noise value.")
+                source="The recommendation does not move: 1%, 3%, and 10% all pick (1.00, 13.39) — the untested thin-b strip the widened box opened. Sensitivity evidence, not proof of the noise value.")
 
     bullets_slide(prs, "Epistemic and aleatory uncertainty do different jobs", [
         ("Epistemic: uncertainty about the latent surface because tests are sparse. Informative beams can reduce it.", 1),
@@ -347,7 +360,8 @@ def build_lecture2():
     bullets_slide(prs, "Expected Improvement, the other dial", [
         "EI asks: by how much would a new test beat the best beam so far, on average?",
         ("accounts for both latent mean mu and epistemic uncertainty sigma, like MUI,", 1),
-        ("but weighs improvement, so it stops caring about regions that cannot win.", 1),
+        ("but weighs improvement, so it stops caring about regions that cannot win,", 1),
+        ("and it has its own dial, xi: an improvement threshold. xi = 0 lets the probabilities trade on their own; larger xi counts only wins that clear the incumbent by that margin, pushing exploration.", 1),
         "MUI and EI can point at different next beams. The choice encodes your appetite for risk; Pre-lab 2 has you code both.",
     ], size=21)
 
@@ -361,6 +375,17 @@ def build_lecture2():
                 caption="Plain GP sees only (b, H_web). Submission 1 lane C also sees log(P_phys) and P_LTB/P_bend from the calibrated three-branch capacity.",
                 source="Features sharpen the fit where their physics is useful; the separation branch carries one calibrated tau_i for an interface strength that scatters between sessions.  (animated in slideshow)")
 
+    bullets_slide(prs, "Two decisions are yours; the rest are stress tests", [
+        "You will meet six modeling \"knobs\" in Submission 1. Do not treat them as six equal choices.",
+        ("You own two decisions: the lane — how physics and data combine into one model — and the risk posture — how hard to chase predicted performance versus uncertainty.", 1),
+        ("The rest — kernel, noise, target scale — are stress tests. After you pick coordinates, swap the kernel and refit at 1% / 3% / 10% noise, and see whether your pick survives.", 1),
+        "The strong conclusion is not \"we chose RBF and 3%.\" It is: \"our exact optimum moves under reasonable assumptions, but every defensible model points at this neighborhood\" — or, just as strong: \"the recommendation is unstable, so we bought information instead of chasing the current maximum.\"",
+    ], size=19)
+
+    image_slide(prs, "The decision map: put both models on the same axes", "figures/fig_decision_map_4panel.png",
+                caption="Calibrated physics (with mode boundaries), GP posterior median, their disagreement, and epistemic sigma — tested beams on every panel. Submission 1 builds this with your knobs.",
+                max_h=4.5)
+
     bullets_slide(prs, "The activity from here", [
         ("Pre-lab 2: fit the GP, write MUI (and EI), work the noise assumption, find the GP-recommended beam.", 1),
         ("Two queries: the class equation design and the class GP design go to the oracle — the same two beams for everyone. Only two.", 1),
@@ -373,7 +398,7 @@ def build_lecture2():
         ("compare vanilla GP setups and read posterior median, epistemic uncertainty, and total predictive uncertainty,", 1),
         ("write both MUI and EI,", 1),
         ("refit under 1% / 3% / 10% noise and note what moves,", 1),
-        ("record the locked class design: b = 1.44 mm, H_web = 13.20 mm, posterior median 38.2 N/g.", 1),
+        ("record the locked class design: b = 1.00 mm, H_web = 13.39 mm, posterior median 37.1 N/g.", 1),
         "That beam is the class's second oracle query. Bring your rationale, not just the number.",
     ], size=20)
 

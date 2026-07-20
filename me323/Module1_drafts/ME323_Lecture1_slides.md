@@ -203,6 +203,18 @@ Because $M_{cr}\propto 1/k^2$, a small change in `k` swings the LTB load hard �
 
 ---
 
+## LTB: what you must own, and what is background
+
+You just saw $I_y$, $J$, $C_w$, warping, load height, and effective length. Here is exactly what you are responsible for:
+
+- **Yours:** what LTB *is* (a tall thin web tipping sideways before the material yields), *when* it competes (thin `b`, large `H_web`), what `k` means physically, and why a calibrated `k` does not transfer between fixtures.
+- **Yours:** reading the capacity plot — which branch governs where, and how much margin the runner-up has.
+- **Background:** deriving $I_y$, $J$, $C_w$, or the $M_{cr}$ formula. The code is supplied; you will never derive or re-implement it in this module.
+
+The test of understanding is not the derivation. It is: *what happens to the LTB branch if the fixture braces the compression flange, and would you still trust the equation optimum?*
+
+---
+
 ## Which mode drives?
 
 For each beam, assign the dominant pure-mode proxy. Color a map of the design space by that label.
@@ -230,7 +242,7 @@ Watch for two things:
 
 ![height:420px](figures/fig_two_optima.png)
 
-This illustration uses the handbook starting values ($k=0.33$, bulk $\tau_i$). The class calibration ($\sigma_y=66.8$ MPa, $k=0.377$, $\tau_i=17.9$ MPa) moves the exact equation optimum to $(b,H_\text{web})=(1.25,13.20)$.
+This illustration uses the handbook starting values ($k=0.33$, bulk $\tau_i$). The class calibration ($\sigma_y=66.8$ MPa, $k=0.377$, $\tau_i=16.8$ MPa) moves the exact equation optimum to $(b,H_\text{web})=(1.10,13.25)$.
 
 ---
 
@@ -247,10 +259,19 @@ A data-driven model that carries its own uncertainty is built for this situation
 
 ---
 
+## The loop this module runs
+
+![height:380px](figures/fig_workflow_end2end.png)
+
+**Physics says what should happen and where failure lives. The data model says what the tests support and where we're still uncertain. Your judgment decides what to build. The test says what we got wrong.** Every artifact in this module is one lap of that loop.
+
+---
+
 ## Before next time: Pre-lab 1
 
 In `ME323_Module1_Prelab1_FailureModes`:
 
+- reduce four raw force–displacement traces to strength — including deciding what beam 9's "twisted off the test stand" peak really measures,
 - load the beam data, compute strength-to-weight,
 - code flexural yield and the junction shear-flow separation check (start $\tau_i$ at the bulk guess 43.9 MPa),
 - compare dominant-mode proxies with measured strengths and failure notes, then calibrate $(\sigma_y, k, \tau_i)$,

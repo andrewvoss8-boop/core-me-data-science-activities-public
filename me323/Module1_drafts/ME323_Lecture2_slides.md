@@ -19,7 +19,7 @@ Today: a model that learns from sparse data and tells you how much it does not k
 
 - You coded three capacity branches — flexural yield, junction shear-flow separation, LTB — calibrated $(\sigma_y, k, \tau_i)$, and took the minimum: one capacity number per design.
 - The parity plot showed where that number holds and where it misses.
-- Your optimizer picked **b = 1.25, H_web = 13.2 mm**: predicted 47.8 N/g. Staff queried the **oracle** — a frozen model fit to a prior campaign of real bend tests, standing in for the testing machine — and it returned 515.6 N = 39.09 N/g on the estimated-mass basis. At that geometry the bend and LTB capacities tie within ~1%, so the "bend" proxy label is a knife-edge call.
+- Your optimizer picked **b = 1.10, H_web = 13.25 mm**: predicted 48.7 N/g. Staff queried the **oracle** — a frozen model fit to a prior campaign of real bend tests, standing in for the testing machine — and it returned 482.6 N = 38.02 N/g on the estimated-mass basis. At that geometry all three mode capacities tie within ~1%, so the "LTB" proxy label is a knife-edge call.
 
 The physics gave you a *point estimate* sitting exactly on a mode boundary — the region you trust it least. The missing ingredient is a statement of confidence. That is today's tool.
 
@@ -54,7 +54,7 @@ Bayesian thinking: carry a **distribution** over the unknown strength surface, n
 
 ![height:420px](figures/fig_gauss_strength.png)
 
-Where does the 3% come from? Repeat prints of one design — four beams at (1.3, 12.8) spanned 548.6 to 566.1 N. Pooled over every repeated geometry the scatter runs ≈4%, with session-to-session and printer-to-printer structure inside it; the class fixes 3% as a stated working value.
+Where does the 3% come from? Repeat prints of one design — four beams at (1.3, 12.8) spanned 548.6 to 566.1 N. Pooled over every repeated geometry the scatter runs ≈4.4%, with session-to-session and printer-to-printer structure inside it; the class fixes 3% as a stated working value.
 
 ---
 
@@ -112,7 +112,7 @@ The length scale answers: how far does one test's influence reach? Too short and
 
 ![height:360px](figures/fig_noise_fits.png)
 
-We assume 3% as the class working value. Pre-lab 2 refits at 1%, 3%, and 10% as a sensitivity check. The recommendation barely moves — 1% and 10% both pick (1.44, 13.39) while 3% picks (1.44, 13.20), one grid step apart and not monotone in the dial. Local stability does not prove the noise assumption correct.
+We assume 3% as the class working value. Pre-lab 2 refits at 1%, 3%, and 10% as a sensitivity check. The recommendation does not move at all — 1%, 3%, and 10% all pick (1.00, 13.39), the untested thin-b strip the widened box opened. Local stability does not prove the noise assumption correct.
 
 ---
 
@@ -151,7 +151,8 @@ Fit → pick the acquisition argmax → test → refit. Watch it probe the thin-
 **EI** asks: by how much would a new test *beat the best beam so far*, on average?
 
 - accounts for both latent mean $\mu$ and epistemic uncertainty $\sigma$, like MUI,
-- but weighs *improvement*, so it stops caring about regions that cannot win.
+- but weighs *improvement*, so it stops caring about regions that cannot win,
+- and it has its own dial, $\xi$: an improvement threshold. $\xi=0$ lets the probabilities trade explore against exploit on their own; larger $\xi$ counts only wins that clear the incumbent by that margin, pushing the pick toward uncertain regions.
 
 MUI and EI can point at different next beams. The choice encodes your appetite for risk; Pre-lab 2 has you code both.
 
@@ -175,6 +176,24 @@ The plain GP sees only `(b, H_web)`. Submission 1 lane C also sees `log(P_phys)`
 
 ---
 
+## Two decisions are yours; the rest are stress tests
+
+You will meet six modeling "knobs" in Submission 1. Do not treat them as six equal choices.
+
+- **You own two decisions:** the **lane** — how physics and data combine into one model — and the **risk posture** — how hard to chase predicted performance versus uncertainty.
+- **The rest — kernel, noise, target scale — are stress tests.** After you pick coordinates, swap the kernel and refit at 1% / 3% / 10% noise, and see whether your pick survives.
+- The strong conclusion is not "we chose RBF and 3%." It is: *"our exact optimum moves under reasonable assumptions, but every defensible model points at this neighborhood"* — or, just as strong: *"the recommendation is unstable, so we bought information instead of chasing the current maximum."*
+
+---
+
+## The decision map: put both models on the same axes
+
+![height:420px](figures/fig_decision_map_4panel.png)
+
+Calibrated physics (with mode boundaries), GP posterior median, their disagreement, and epistemic sigma — tested beams on every panel. Submission 1 builds this with *your* knobs; read your candidate against all four before you commit.
+
+---
+
 ## The activity from here
 
 1. **Pre-lab 2**: fit the GP, write MUI (and EI), work the noise assumption, find the GP-recommended beam.
@@ -191,6 +210,6 @@ In `ME323_Module1_Prelab2_ML`:
 - compare vanilla GP setup choices and read posterior median, epistemic uncertainty, and total predictive uncertainty,
 - write both MUI and EI,
 - refit under 1% / 3% / 10% noise and note what moves,
-- record the locked class design: **b = 1.44 mm, H_web = 13.20 mm**, posterior median 38.2 N/g.
+- record the locked class design: **b = 1.00 mm, H_web = 13.39 mm**, posterior median 37.1 N/g.
 
 That beam is the class's second oracle query. Bring your rationale, not just the number.
