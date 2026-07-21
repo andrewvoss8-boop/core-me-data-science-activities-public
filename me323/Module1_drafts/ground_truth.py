@@ -19,7 +19,7 @@ str/w target (gpf_sw_matern_sep; LOLO 2.216 N/g). Class physics layer
 likewise teaches the junction model; Pre-lab 1 calibrates (sigma_y, k, tau_i)
 = (66.8 MPa, 0.377, 16.76 MPa) on the handout. Derivation: analysis notebooks
 15-20 + the faculty shear notebook; dry run in notebook 12. Class rules: the
-oracle returns real proper-support test means where a design has been
+ground-truth query returns real proper-support test means where a design has been
 printed, else the GT mean; since 2026-07-20 there is NO tested-design
 exclusion rule -- in the widened box the locked recipe picks an untested
 point on its own.

@@ -55,7 +55,7 @@ out.to_csv(DATA_DIR / "student_beams_B10_L150.csv", index=False)
 out.to_csv(DRAFTS / "student_beams_B10_L150.csv", index=False)
 print("wrote student_beams_B10_L150.csv (15 beams) to data/ and Module1_drafts/")
 
-# frozen class results (2026-07-20 widened-box re-freeze, oracle policy v3;
+# frozen class results (2026-07-20 widened-box re-freeze, query policy v3;
 # GT = gpf_sw_matern_sep on all 85 usable tests, unchanged — see ground_truth.py)
 EQ_B, EQ_H, EQ_SW, EQ_N = 1.10, 13.25, 38.02, 482.6
 GP_B, GP_H, GP_SW, GP_N = 1.00, 13.39, 36.06, 438.7
@@ -238,7 +238,7 @@ so do it here first, where the answer is checkable.
 Reduce each trace to one number and compare against the handout column. Then
 read the *shapes*: an abrupt cliff after the peak is a fracture; a rounded
 peak that sheds load gradually is a different physical story. And look hard at
-beam 9 — the machine faithfully recorded a peak of 314.4 N, but the beam left
+beam 9 — the machine recorded a peak of 314.4 N, but the beam left
 the load path by twisting, not by breaking. Whether that number is a material
 strength, a fixture/stability artifact, or both is a judgment call, and every
 model downstream of this table inherits whatever you decide."""),
@@ -270,10 +270,9 @@ print(cmp.round(1))
 """),
 
 md("""Two of these curves end in a cliff and two do not, and the cliff beams are the
-ones whose notes say *fracture* — the curve shape and the note are the same
-fact seen two ways. That is the whole data-reduction lesson: `strength_N` is a
-decision about a curve, not a reading off a dial, and beam 9 is the case where
-the decision is genuinely arguable (memo question 5)."""),
+ones whose notes say *fracture*: the curve shape and the note record the same
+event. `strength_N` is a decision about a curve, and beam 9 is the case where
+the call is arguable (memo question 5)."""),
 
 md('''## 2. Strength-to-weight
 
@@ -635,9 +634,10 @@ print("mode capacities at the optimum, calibrated: "
 print("CHECKPOINT: b = «EQ_B_CK», H_web = «EQ_H_CK», predicted «EQ_PRED» N/g.")'''),
 md('''### What happens to this design
 
-Staff query it against the **oracle**: a statistical model fit to a large prior
-campaign of real print-and-bend tests on this exact geometry and fixture, then
-frozen before the course began. The oracle stands in for the testing machine so
+Staff query it against the **ground truth model**: a statistical model fit to
+a large prior campaign of real print-and-bend tests on this exact geometry and
+fixture, then frozen before the course began. It stands in for the testing
+machine so
 the class's limited print-and-test budget is not spent re-testing the same two
 class-common designs — the strength it returns is its prediction of what a real
 test would measure, not a new broken beam. The beam that does get printed and
@@ -667,7 +667,7 @@ graded with it. Do not re-answer them in the Submission 1 memo.
    back from b = 1.0 by the calibrated LTB surface. Which observed failures --
    beam 15's note above all -- should reduce your trust in that neighborhood?
 
-5. From §1b: which trace shapes separate abrupt fracture from gradual
+5. From section 1b: which trace shapes separate abrupt fracture from gradual
    failure? Make the call on beam 9 — material strength, fixture/stability
    artifact, or both — and say how a model trained on that 314.4 N should
    treat it.
@@ -710,7 +710,7 @@ estimated-mass basis**. It is the best of the first 16 beams, beating the
 handout best-of-15 value of «BEST_SW2» N/g. The returned ratio is
 «EQ_BELOW_PCT»% below the equation prediction.
 
-Remember where that number comes from: the **oracle**, the staff model fit to
+Remember where that number comes from: the **ground truth model**, the staff model fit to
 a prior campaign of real bend tests that stands in for the testing machine
 (Pre-lab 1's closing note). Nothing new was printed. Treat {EQ_N} N as one more
 data point that carries the campaign's scatter, not as truth — the beam that is
@@ -909,7 +909,7 @@ for col, (title, xplot, Xslice, xlabel, x_anchor) in enumerate(slices):
                     label="latent trend: epistemic uncertainty")
     ax.plot(xplot, median_sw, color="black", label="posterior median")
     ax.scatter(x_anchor, equation_sw, color="red", marker="x", s=70,
-               label="oracle-returned equation query")
+               label="ground-truth equation query")
     ax.set(title=title, xlabel=xlabel, ylabel="str/w [N/g]")
     ax.grid(alpha=0.25)
     ax = axes[1, col]
@@ -974,8 +974,8 @@ drift), not independent per-print noise, which is exactly why no single
 percentage is "the" right value. The class fixes 3% as a stated working
 assumption. If that bothers you, good: the refits in this section are the
 tool for finding out whether your decision actually cares about the
-difference, and a memo that runs its design at 4.4% and reports what moved is
-using the assumption the way engineers are supposed to.'''),
+difference. A memo that reruns its design at 4.4% and reports what moved has
+done the real check.'''),
 md('''## 5. MUI and Expected Improvement in the full 2D design box
 
 Maximum Upper Interval uses $a=\\mu+\\psi\\sigma$. Expected Improvement uses
@@ -1047,7 +1047,7 @@ print("EI checkpoint: b=«EI_B», H_web=«EI_H».")'''),
 md('''## 7. Final filter: the one class GP design
 
 You explored alternatives, but the class query must be reproducible: locking
-one recipe is what makes the second oracle query a single shared data point
+one recipe is what makes the second ground-truth query a single shared data point
 that every group can compare. The final rule is fixed: official ARD-RBF model,
 3% noise, MUI with $\\psi=1$, on the stated grid. No exclusion rule is
 needed: the widened box leaves the model a genuinely untested thin-b strip,
@@ -1161,8 +1161,8 @@ worth building. A model can be honest about a mediocre region and still lose
 to an overconfident one that happened to point somewhere better. One test
 settles less than it seems to.
 
-Both returned strengths came from the staff oracle — the model fit to the
-prior test campaign that stands in for the testing machine — so nothing has
+Both returned strengths came from the staff ground truth model — fit to the
+prior test campaign, standing in for the testing machine — so nothing has
 been printed yet. That changes here: fold both query results into the data,
 build a model your way, and commit to a third design, the beam your group will
 actually print and break. Do not call either common query beam your
@@ -1171,20 +1171,20 @@ final answer is a decision defended in the memo.'''),
 md('''## Your knobs
 
 This notebook hands you a working pipeline, but every modeling decision in it
-is a variable you set — and each one is an assumption about the world, not a
-setting with a known right answer. The full dashboard:
+is a variable you set: an assumption that goes into the model, not a setting
+with a known right answer. The full dashboard:
 
 | knob | variable (where) | options | the assumption you are making |
 |---|---|---|---|
-| model architecture | `CHOICE` (§3) | `"A plain"` / `"B strength"` / `"C features"` / `"D residual"` | how much physics the model gets, and what quantity it learns — §2 |
-| prediction target | comes with the lane | str/w directly (lanes A, C, D) or raw strength ÷ mass (lane B) | which quantity is the smoother, easier thing to learn — §2 |
-| kernel | `KERNEL` (§3) | `"RBF"` / `"Matern"` | how smooth the true strength surface is — §3 |
-| assumed noise | `NOISE_PCT` (§3) | any percent; class default 3, pooled campaign repeats ≈ 4.4 (Pre-lab 2 §4) | how much of beam-to-beam scatter is repeatability rather than real shape — §3 |
-| acquisition rule | `ACQ` (§4) | `"MUI"` / `"EI"` | how predicted value and uncertainty combine into one pick — §4 |
-| explore vs exploit | `psi` (§4, MUI only) | 0 = pure exploit; larger = more explore | how much a *chance* at a better beam is worth against a safe, good one — §4 |
+| model architecture | `CHOICE` (section 3) | `"A plain"` / `"B strength"` / `"C features"` / `"D residual"` | how much physics the model gets, and what quantity it learns — section 2 |
+| prediction target | comes with the lane | str/w directly (lanes A, C, D) or raw strength ÷ mass (lane B) | which quantity is the smoother, easier thing to learn — section 2 |
+| kernel | `KERNEL` (section 3) | `"RBF"` / `"Matern"` | how smooth the true strength surface is — section 3 |
+| assumed noise | `NOISE_PCT` (section 3) | any percent; class default 3, pooled campaign repeats ≈ 4.4 (Pre-lab 2 section 4) | how much of beam-to-beam scatter is repeatability rather than real shape — section 3 |
+| acquisition rule | `ACQ` (section 4) | `"MUI"` / `"EI"` | how predicted value and uncertainty combine into one pick — section 4 |
+| explore vs exploit | `psi` (section 4, MUI only) | 0 = pure exploit; larger = more explore | how much a *chance* at a better beam is worth against a safe, good one — section 4 |
 
 Two kinds of knobs, two ways to choose. Architecture and kernel make claims
-the data can score, and the leave-one-out table in §2 is their referee. Noise
+the data can score, and the leave-one-out table in section 2 is their referee. Noise
 and ψ make claims the data *cannot* score: no table can tell you the rig's
 repeatability or how much risk your group should carry. Those you defend in
 the memo with physical reasoning and stated values.
@@ -1394,7 +1394,7 @@ becomes code.
 - `"Matern"` (ν = 2.5) assumes less: the surface may carry kinks, and a data
   point speaks a bit less confidently about its neighbors.
 
-How to discern: the LOO table in §2 now scores both kernels, so start there —
+How to discern: the LOO table in section 2 now scores both kernels, so start there —
 remembering the 17-point caveat. Then ask whether you believe this surface
 *has* a crease: the failure-note table says different beams died by different
 mechanisms, which is an argument that it does.
@@ -1410,7 +1410,7 @@ smooths the fit, guarding against overfitting seventeen points, at the price of
 muting real features. No cell in this
 notebook can compute the right value: the 17 beams contain no repeated
 geometry, so the data cannot measure its own error bar. The best physical
-anchor available is the staff campaign behind the oracle: four repeat prints
+anchor available is the staff campaign behind the ground truth model: four repeat prints
 of one design spanned 548.6 to 566.1 N — about a 3% spread — and pooled
 across every repeated geometry there, the scatter ran near 4%, with
 print-session structure inside it. That brackets a defensible range; it does
@@ -1455,7 +1455,7 @@ they turn "which model do we trust *here*" into something you can point at:
 Read your candidate against all four: Do the models agree there? Is the
 agreement backed by nearby tests, or is it two extrapolations shaking hands?
 Does the disagreement track a mode boundary? Is the attractive region
-genuinely promising, or merely unexplored? These are card rows 5 and 6, drawn
+promising, or merely unexplored? These are card rows 6 and 7, drawn
 instead of written."""),
 
 code("""PHYS = np.array([capacity(b, H, SY_CAL, K_CAL, TAU_CAL) /
@@ -1556,9 +1556,27 @@ print(f"FINAL DESIGN ({ACQ}):  b = {b_final:.2f} mm,  H_web = {H_final:.2f} mm")
 print(f"  posterior median {MU[i]:.1f} N/g,  epistemic sigma_log {STD[i]:.3f},  "
       f"calibrated physics {capacity(b_final, H_final, SY_CAL, K_CAL, TAU_CAL)/estimated_mass_g(b_final, H_final):.1f} N/g")
 print(f"  physics mode there: {gov_mode(b_final, H_final, SY_CAL, K_CAL, TAU_CAL)}")'''),
+md("""### Optional: sweep every knob combination
+
+Memo prompt 5 checks a handful of settings by hand. For a stronger case,
+write your own code, from scratch, that loops over the combinations: four
+lanes, two kernels, several noise values, both acquisition rules, and two or
+three dial values. Collect each run's final coordinates into one table, save
+it as a CSV, and plot where the picks land on the design box.
+
+Read the result two ways. A region where many combinations agree is stable:
+a design there does not hang on any single assumption. A knob that moves the
+pick far is an assumption doing real work, and card row 4 asks you to name
+it. If your recommendation holds only under your exact settings, say so in
+the memo, then either move to the stable region or defend the sensitivity.
+
+The sweep is optional, and no template is provided on purpose: the loop is
+yours to design. What it produces is direct evidence for memo prompt 5 and
+card row 4."""),
+
 md('''## Memo
 
-**File the decision card first.** Fill rows 1–9 of
+**File the decision card first.** Fill rows 1–10 of
 `ME323_Module1_DecisionCard.md` and its preregistration table, and submit them
 with this notebook — the preregistration is due before your beam is printed,
 and graders read the card before the memo. The prompts below map onto card
@@ -1573,18 +1591,18 @@ only these prompts; the pre-lab questions stay in their own notebooks.
    for the intended design decision?
 2. Your lane: what did the LOO table say under both kernels, and did you
    follow it? If you chose C or D, what does physics contribute between the
-   observations? (Card rows 3 and 6.)
+   observations? (Card rows 3 and 4.)
 3. Risk: name your acquisition rule (`ACQ`, plus its dial) and your
    `NOISE_PCT`, and use the printed posterior median, epistemic sigma, and
    final coordinates to explain whether you exploited, explored, or
    replicated. Is the main risk a weak beam or a model that is confidently
-   wrong? (Card row 7.)
+   wrong? (Card row 8.)
 4. Limits: compare your coordinates with the thin-web flange-web-separation
    notes and with the four-panel decision map. Where could that unmodeled
-   mechanism affect your design? (Card rows 5–6, 9.)
-5. Stress test: rerun §3–4 with the other kernel and at 1% and 10% noise. Did
+   mechanism affect your design? (Card rows 6–7, 10.)
+5. Stress test: rerun sections 3 and 4 with the other kernel and at 1% and 10% noise. Did
    your coordinates survive? State either the stable-neighborhood conclusion
-   or the case for buying information instead.
+   or the case for buying information instead. (Card row 4.)
 6. Name the **three figures** (by section) that carry your argument, one
    sentence each on the work it does. Graders may ignore every other plot.
 
@@ -1656,7 +1674,7 @@ md("""## 1. Your beam's test result
 **Two things before you type numbers in.** First, the peak load you enter is
 one your group reduced yourselves from your beam's raw force–displacement
 trace — the same reduction you practiced on four campaign traces in Pre-lab 1
-§1b. Look at your curve's shape (cliff or gradual?) before trusting the peak.
+section 1b. Look at your curve's shape (cliff or gradual?) before trusting the peak.
 Second, put your preregistration table (filed with Submission 1) next to the
 result *before* reading further: the reflection below is graded against what
 your group predicted on record, not against what is easy to explain now."""),
@@ -1874,7 +1892,7 @@ md('''## Memo
 Write it in markdown cells below this one, answering the prompts in order —
 400 to 800 words. This memo is the module's primary assessed artifact.
 
-0. Card row 10: before the prompts, complete the **Update** row of your
+0. Card row 11: before the prompts, complete the **Update** row of your
    decision card — what did the result change: your model, your confidence,
    or your next design? One assumption, named.
 1. Reflection: report measured and estimated mass, use the model-basis ratio for

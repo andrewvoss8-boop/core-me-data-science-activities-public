@@ -19,7 +19,7 @@ Today: a model that learns from sparse data and tells you how much it does not k
 
 - You coded three capacity branches — flexural yield, junction shear-flow separation, LTB — calibrated $(\sigma_y, k, \tau_i)$, and took the minimum: one capacity number per design.
 - The parity plot showed where that number holds and where it misses.
-- Your optimizer picked **b = 1.10, H_web = 13.25 mm**: predicted 48.7 N/g. Staff queried the **oracle** — a frozen model fit to a prior campaign of real bend tests, standing in for the testing machine — and it returned 482.6 N = 38.02 N/g on the estimated-mass basis. At that geometry all three mode capacities tie within ~1%, so the "LTB" proxy label is a knife-edge call.
+- Your optimizer picked **b = 1.10, H_web = 13.25 mm**: predicted 48.7 N/g. Staff queried the **ground truth model** — a frozen model fit to a prior campaign of real bend tests, standing in for the testing machine — and it returned 482.6 N = 38.02 N/g on the estimated-mass basis. At that geometry all three mode capacities tie within ~1%, so the "LTB" proxy label is a knife-edge call.
 
 The physics gave you a *point estimate* sitting exactly on a mode boundary — the region you trust it least. The missing ingredient is a statement of confidence. That is today's tool.
 
@@ -160,7 +160,7 @@ MUI and EI can point at different next beams. The choice encodes your appetite f
 
 ## Zoom out: spending a test budget
 
-Each print-and-test costs a machine slot, a test engineer hour, and days of queue. The class gets **two oracle queries** — answered by the frozen staff model, cheap because the prior campaign already paid for that information — and each group gets **one real print**.
+Each print-and-test costs a machine slot, a test engineer hour, and days of queue. The class gets **two ground-truth queries** — answered by the frozen staff model, cheap because the prior campaign already paid for that information — and each group gets **one real print**.
 
 Optimal experimental design is the batch version of the acquisition question: given N tests, which set teaches the most or finds the best fastest? Choosing the next test *is* the engineering decision.
 
@@ -197,7 +197,7 @@ Calibrated physics (with mode boundaries), GP posterior median, their disagreeme
 ## The activity from here
 
 1. **Pre-lab 2**: fit the GP, write MUI (and EI), work the noise assumption, find the GP-recommended beam.
-2. **Two queries**: the class equation design and the class GP design go to the oracle — the same two beams for everyone. Only two.
+2. **Two queries**: the class equation design and the class GP design go to the ground truth model — the same two beams for everyone. Only two.
 3. **Submission 1**: combine physics, GP, and the two new points; pick the beam you will print; defend it in the memo.
 4. Print, test, reflect, redesign: Submission 2 folds your own test result back into the model and asks what it changes.
 
@@ -212,4 +212,4 @@ In `ME323_Module1_Prelab2_ML`:
 - refit under 1% / 3% / 10% noise and note what moves,
 - record the locked class design: **b = 1.00 mm, H_web = 13.39 mm**, posterior median 37.1 N/g.
 
-That beam is the class's second oracle query. Bring your rationale, not just the number.
+That beam is the class's second ground-truth query. Bring your rationale, not just the number.

@@ -24,7 +24,7 @@ half; the group's beam must be printed and tested before Submission 2 opens.
    reprint policy for failed prints.
 3. **Weigh and measure.** Measured mass to 0.1 g; measured `b` and `H_web`
    with calipers at three stations along the span. Enter both next to the
-   nominal values — the nominal-vs-printed gap is data, not error.
+   nominal values; the memo uses the gap between nominal and printed.
 4. **Preregister.** The decision card's preregistration table
    (`ME323_Module1_DecisionCard.md`) is filed *before* the test slot. No
    preregistration, no test.
@@ -51,9 +51,9 @@ half; the group's beam must be printed and tested before Submission 2 opens.
   graded at Submission 1 either way.
 - **Failed or invalid test** (beam slips, early stop, fixture problem): the
   trace and photos still get filed and the group writes the failure note on
-  what happened; staff schedule one retest if machine time allows. A censored
-  test is handled in the memo the way the module teaches — as information
-  with a known direction, not a missing value.
+  what happened; staff schedule one retest if machine time allows. The memo treats a
+  censored test the way the module teaches: the load reached is a lower
+  bound, not a missing value.
 - **Absent member on test day:** the test runs; individual grades follow the
   rubric's individual components, not test-day attendance.
 
