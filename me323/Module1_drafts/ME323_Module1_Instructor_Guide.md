@@ -129,11 +129,11 @@ How to make it deterministic so everyone lands on the same two beams:
 
 ## Common pitfalls to watch
 
-- Students trusting the equation optimum because it is precise. The point of Pre-lab 1 is that it sits on a bend–LTB knife edge (the two capacities tie within ~1%; the printed proxy says "bend" only by a 0.999 threshold), where the model rests on the most assumptions.
-- Calling `exp(mu_log)` a mean. It is the posterior median on the response scale.
-- Using total predictive sigma as an exploration bonus, or epistemic sigma alone as a future-beam reliability bound.
-- Comparing strength-to-weight values with measured-mass and estimated-mass denominators without naming the difference.
-- Over-tuning the noise to fit. Flag that a somewhat inflated noise can generalize better, and that there is no single correct value.
+Two habits account for most weak work in this module, and both leave fingerprints in the memo and the decision card.
+
+**Trusting a model because its output is precise.** A number printed to two decimals reads as authority, and students carry it forward without asking what had to hold for it to mean anything. The equation optimum is the sharpest case in the module: it sits on a three-way mode knife edge (the capacities tie within ~1%), which is exactly where the calibrated physics leans hardest on its assumptions, and every constant in it (σ_y, k, τᵢ) is a calibrated, condition-specific quantity rather than handbook truth. The GP versions of the same habit: quoting `exp(mu_log)` as the predicted strength when it is the posterior median on the response scale; reading epistemic sigma as a reliability bound for a future beam (that needs total sigma), or total sigma as an exploration bonus (that wants epistemic); comparing strength-to-weight values across measured-mass and estimated-mass denominators without naming the difference. When a group quotes a number with no assumption attached, send them to the decision card's "what would change your mind" row.
+
+**Stopping at the first modeling recipe that runs.** Pre-lab 2's comparisons and the Submission 1 knobs dashboard exist so that kernel, noise level, feature lane, and acquisition rule get treated as decisions with consequences. Watch for groups whose LOO table appears in the notebook but changed nothing they did, whose sensitivity checks all happen to confirm the default, or who cannot say what a different choice would have recommended. The mirror image of under-exploring is over-fitting the exploration: hunting for the noise value that best fits the frozen beams. There is no single correct noise, a somewhat inflated value can generalize better, and the point of the 1/3/10% sweep is to see how the recommendation moves, not to crown a winner.
 
 ---
 

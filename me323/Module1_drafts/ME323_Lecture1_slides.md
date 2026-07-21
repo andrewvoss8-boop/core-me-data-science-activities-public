@@ -9,7 +9,7 @@ paginate: true
 
 Pick a 3D-printed I-beam that carries the most load per gram.
 
-The equations give you a start. They will not give you the answer.
+The equations give you a start, not the answer.
 
 <!-- PLACEHOLDER (new campaign): hero photo of a printed I-beam on the three-point-bend fixture, load head touching the top flange. -->
 
@@ -34,7 +34,7 @@ Three things stand between you and a clean optimization:
 2. **Lateral-torsional buckling depends on the fixture**, not just the beam.
 3. The **failure modes overlap**. Real beams fail in mixed, progressive ways.
 
-We will price the layer-line mode with one calibrated number — but that number drifts with print session and support condition, and the other two problems remain. The equations narrow the problem. They do not solve it.
+We will price the layer-line mode with one calibrated number — but that number drifts with print session and support condition, and the other two problems remain. The equations narrow the problem without solving it.
 
 <!-- PLACEHOLDER (new campaign): side-by-side photos of three failed beams — one yielded and sagging, one with the web split along a layer line, one tipped sideways. Caption each with its (b, H_web). -->
 
@@ -89,7 +89,7 @@ Push too far and you wake the **other two modes**:
 - a flange-web junction too thin to carry the shear flow — the printed layer-line bond lets go,
 - a section too tall and narrow, which **tips over** (LTB) before it ever yields.
 
-The efficient shape and the failure modes pull against each other. That tension is the design problem.
+The efficient shape and the failure modes pull against each other; resolving that tension is the design problem.
 
 ---
 
@@ -179,14 +179,14 @@ $$J=\tfrac13\,\beta(b,H_\text{web})\,H_\text{web}\,b^3+\tfrac23\,\beta(t_f,B)\,B
 
 ## The assumptions underneath
 
-The formula is exact only for an idealized beam. Ours is not quite that beam.
+The formula is exact for an idealized beam, and ours differs from it in four ways.
 
 - **Thin-walled open section.** `J` and `C_w` use thin-rectangle theory. With webs up to 7 mm against a 10 mm flange, "thin" is generous; `J` starts to drift.
 - **Timoshenko elastic stability.** `M_cr` is the classical torsional-flexural buckling load: linear-elastic, perfectly straight, no residual stress. A printed beam has all three imperfections.
 - **Warping torsion.** Open sections warp under twist; the `C_w` term assumes the ends are free to warp. The real fixture restrains them somewhat, which is exactly what `k` absorbs.
 - **Elastic, isotropic material.** $E=2.5$ GPa, $G=E/2.6$ (so $\nu=0.3$). Printed PLA is layered and anisotropic, not isotropic.
 
-Each gap is a reason the equation narrows the answer without settling it.
+Each gap widens the error bar you should carry on the LTB capacity.
 
 ---
 
@@ -205,13 +205,13 @@ Because $M_{cr}\propto 1/k^2$, a small change in `k` swings the LTB load hard �
 
 ## LTB: what you must own, and what is background
 
-You just saw $I_y$, $J$, $C_w$, warping, load height, and effective length. Here is exactly what you are responsible for:
+You just saw $I_y$, $J$, $C_w$, warping, load height, and effective length. You are responsible for this much of it:
 
 - **Yours:** what LTB *is* (a tall thin web tipping sideways before the material yields), *when* it competes (thin `b`, large `H_web`), what `k` means physically, and why a calibrated `k` does not transfer between fixtures.
 - **Yours:** reading the capacity plot — which branch governs where, and how much margin the runner-up has.
 - **Background:** deriving $I_y$, $J$, $C_w$, or the $M_{cr}$ formula. The code is supplied; you will never derive or re-implement it in this module.
 
-The test of understanding is not the derivation. It is: *what happens to the LTB branch if the fixture braces the compression flange, and would you still trust the equation optimum?*
+The test of understanding: *what happens to the LTB branch if the fixture braces the compression flange, and would you still trust the equation optimum?*
 
 ---
 

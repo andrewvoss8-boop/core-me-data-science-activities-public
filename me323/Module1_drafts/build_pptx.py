@@ -135,7 +135,7 @@ def build_lecture1():
     title_slide(prs, "Designing a Beam Under Messy Physics",
                 "ME 323 Module 1 — Lecture 1",
                 "Pick a 3D-printed I-beam that carries the most load per gram.\n"
-                "The equations give you a start. They will not give you the answer.")
+                "The equations give you a start, not the answer.")
 
     bullets_slide(prs, "The challenge", [
         ("Fixed: total height 18 mm, flange width 10 mm, test span 150 mm, printed length 172 mm, PLA.", 1),
@@ -150,7 +150,7 @@ def build_lecture1():
         ("Printed beams can fracture along the layer lines: the flange peels off the web at a printed interface whose strength appears in no handbook.", 1),
         ("Lateral-torsional buckling depends on the fixture, not just the beam.", 1),
         ("The failure modes overlap. Real beams fail in mixed, progressive ways.", 1),
-        "We will price the layer-line mode with one calibrated number — but that number drifts with print session and support condition, and the other two problems remain. The equations narrow the problem. They do not solve it.",
+        "We will price the layer-line mode with one calibrated number — but that number drifts with print session and support condition, and the other two problems remain. The equations narrow the problem without solving it.",
     ], size=20)
 
     bullets_slide(prs, "Three modeled capacity branches", [
@@ -176,7 +176,7 @@ def build_lecture1():
         "Push too far and you wake the other two modes:",
         ("a flange-web junction too thin to carry the shear flow — the printed layer-line bond lets go,", 1),
         ("a section too tall and narrow, which tips over (LTB) before it ever yields.", 1),
-        "The efficient shape and the failure modes pull against each other. That tension is the design problem.",
+        "The efficient shape and the failure modes pull against each other; resolving that tension is the design problem.",
     ], size=21)
 
     image_slide(prs, "Flange-web separation: shear flow at the printed junction",
@@ -224,12 +224,12 @@ def build_lecture1():
         "All three come from section_props in Pre-lab 1.",
     ], 17, INK, space=8.0)
     bullets_slide(prs, "The assumptions underneath", [
-        "The formula is exact only for an idealized beam. Ours is not quite that beam.",
+        "The formula is exact for an idealized beam, and ours differs from it in four ways.",
         ("Thin-walled open section: J and C_w use thin-rectangle theory. Webs up to 7 mm against a 10 mm flange stretch 'thin'; J drifts.", 1),
         ("Timoshenko elastic stability: M_cr assumes linear-elastic, perfectly straight, no residual stress. A print has all three imperfections.", 1),
         ("Warping torsion: the C_w term assumes ends free to warp. The real fixture restrains them — which is what k absorbs.", 1),
         ("Elastic, isotropic material: E = 2.5 GPa, G = E/2.6 (nu = 0.3). Printed PLA is layered and anisotropic.", 1),
-        "Each gap is a reason the equation narrows the answer without settling it.",
+        "Each gap widens the error bar you should carry on the LTB capacity.",
     ], size=18)
     eq_slide(prs, "The one number that rules LTB: k", "eq/k_scale.png", [
         "k is the effective-length factor: how far the beam twists and bends sideways between whatever restrains it.",
@@ -240,11 +240,11 @@ def build_lecture1():
     ])
 
     bullets_slide(prs, "LTB: what you must own, and what is background", [
-        "You just saw Iy, J, Cw, warping, load height, and effective length. Here is exactly what you are responsible for:",
+        "You just saw Iy, J, Cw, warping, load height, and effective length. You are responsible for this much of it:",
         ("Yours: what LTB is (a tall thin web tipping sideways before the material yields), when it competes (thin b, large H_web), what k means physically, and why a calibrated k does not transfer between fixtures.", 1),
         ("Yours: reading the capacity plot — which branch governs where, and how much margin the runner-up has.", 1),
         ("Background: deriving Iy, J, Cw, or the Mcr formula. The code is supplied; you will never derive or re-implement it in this module.", 1),
-        "The test of understanding is not the derivation. It is: what happens to the LTB branch if the fixture braces the compression flange, and would you still trust the equation optimum?",
+        "The test of understanding: what happens to the LTB branch if the fixture braces the compression flange, and would you still trust the equation optimum?",
     ], size=19)
 
     image_slide(prs, "Which mode drives?", "figures/fig_failure_mode_map.png",
@@ -300,7 +300,7 @@ def build_lecture2():
         ("You coded three capacity branches — flexural yield, junction shear-flow separation, LTB — calibrated (sigma_y, k, tau_i), and took the minimum: one capacity number per design.", 1),
         ("The parity plot showed where that number holds and where it misses.", 1),
         ("Your optimizer picked b = 1.10, H_web = 13.25 mm: predicted 48.7 N/g. Staff queried the ground truth model — a frozen model fit to a prior campaign of real bend tests, standing in for the testing machine — and it returned 482.6 N = 38.02 N/g on the estimated-mass basis. There all three mode capacities tie within ~1%, so the 'LTB' proxy is a knife-edge call.", 1),
-        "The physics gave you a point estimate sitting exactly on a mode boundary — the region you trust it least. The missing ingredient is a statement of confidence.",
+        "The physics gave you a point estimate sitting on a mode boundary, the region where you trust it least. Today's tool adds what is missing: a statement of confidence.",
     ], size=20)
 
     bullets_slide(prs, "You already have most of this", [

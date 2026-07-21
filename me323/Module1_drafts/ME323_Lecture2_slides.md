@@ -21,7 +21,7 @@ Today: a model that learns from sparse data and tells you how much it does not k
 - The parity plot showed where that number holds and where it misses.
 - Your optimizer picked **b = 1.10, H_web = 13.25 mm**: predicted 48.7 N/g. Staff queried the **ground truth model** — a frozen model fit to a prior campaign of real bend tests, standing in for the testing machine — and it returned 482.6 N = 38.02 N/g on the estimated-mass basis. At that geometry all three mode capacities tie within ~1%, so the "LTB" proxy label is a knife-edge call.
 
-The physics gave you a *point estimate* sitting exactly on a mode boundary — the region you trust it least. The missing ingredient is a statement of confidence. That is today's tool.
+The physics gave you a *point estimate* sitting on a mode boundary, the region where you trust it least. Today's tool adds what is missing: a statement of confidence.
 
 ---
 
