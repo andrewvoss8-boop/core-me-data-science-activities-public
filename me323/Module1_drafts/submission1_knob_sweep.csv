@@ -1,0 +1,161 @@
+lane,kernel,noise_pct,rule,b_mm,H_web_mm,pred_sw,sigma_log,phys_mode,gt_strength_N,gt_sw,gt_gap
+A plain,RBF,1,MUI psi=0,1.097,13.203,38.14,0.0131,separation,485.4,38.01,2.7
+A plain,RBF,1,MUI psi=0.5,1.0,13.017,38.07,0.0381,separation,459.6,35.76,4.95
+A plain,RBF,1,MUI psi=1,1.0,13.017,38.07,0.0381,separation,459.6,35.76,4.95
+A plain,RBF,1,MUI psi=2,1.0,13.017,38.07,0.0381,separation,459.6,35.76,4.95
+A plain,RBF,1,EI,1.0,13.017,38.07,0.0381,separation,459.6,35.76,4.95
+A plain,RBF,3,MUI psi=0,1.0,13.203,36.9,0.0244,separation,449.9,35.96,4.75
+A plain,RBF,3,MUI psi=0.5,1.0,13.203,36.9,0.0244,separation,449.9,35.96,4.75
+A plain,RBF,3,MUI psi=1,1.0,13.017,36.6,0.0349,separation,459.6,35.76,4.95
+A plain,RBF,3,MUI psi=2,1.0,14.881,35.63,0.0557,LTB,310.3,32.94,7.77
+A plain,RBF,3,EI,1.0,14.881,35.63,0.0557,LTB,310.3,32.94,7.77
+A plain,RBF,5,MUI psi=0,1.0,13.763,36.13,0.0309,LTB,412.1,35.9,4.81
+A plain,RBF,5,MUI psi=0.5,1.0,13.763,36.13,0.0309,LTB,412.1,35.9,4.81
+A plain,RBF,5,MUI psi=1,1.0,13.949,36.07,0.0331,LTB,397.7,35.71,5.0
+A plain,RBF,5,MUI psi=2,1.0,8.729,34.88,0.0583,separation,721.3,34.77,5.94
+A plain,RBF,5,EI,1.0,8.729,34.88,0.0583,separation,721.3,34.77,5.94
+A plain,RBF,10,MUI psi=0,1.387,13.39,33.83,0.0257,LTB,505.5,38.22,2.49
+A plain,RBF,10,MUI psi=0.5,1.0,13.39,33.83,0.0257,separation,438.7,36.06,4.65
+A plain,RBF,10,MUI psi=1,1.0,13.39,33.83,0.0257,separation,438.7,36.06,4.65
+A plain,RBF,10,MUI psi=2,1.0,13.39,33.83,0.0257,separation,438.7,36.06,4.65
+A plain,RBF,10,EI,7.0,12.644,33.68,0.0267,bend,934.4,32.16,8.55
+A plain,Matern,1,MUI psi=0,1.0,13.203,38.09,0.0148,separation,449.9,35.96,4.75
+A plain,Matern,1,MUI psi=0.5,1.0,13.203,38.09,0.0148,separation,449.9,35.96,4.75
+A plain,Matern,1,MUI psi=1,1.0,13.017,37.43,0.0449,separation,459.6,35.76,4.95
+A plain,Matern,1,MUI psi=2,1.0,13.017,37.43,0.0449,separation,459.6,35.76,4.95
+A plain,Matern,1,EI,1.0,13.017,37.43,0.0449,separation,459.6,35.76,4.95
+A plain,Matern,3,MUI psi=0,1.0,13.203,36.91,0.0251,separation,449.9,35.96,4.75
+A plain,Matern,3,MUI psi=0.5,1.0,13.203,36.91,0.0251,separation,449.9,35.96,4.75
+A plain,Matern,3,MUI psi=1,1.0,13.017,36.5,0.0376,separation,459.6,35.76,4.95
+A plain,Matern,3,MUI psi=2,1.0,14.881,35.49,0.0562,LTB,310.3,32.94,7.77
+A plain,Matern,3,EI,1.0,14.881,35.49,0.0562,LTB,310.3,32.94,7.77
+A plain,Matern,5,MUI psi=0,1.0,13.39,36.06,0.029,separation,438.7,36.06,4.65
+A plain,Matern,5,MUI psi=0.5,1.0,13.576,36.06,0.0325,LTB,426.0,36.03,4.68
+A plain,Matern,5,MUI psi=1,1.0,13.949,35.83,0.0415,LTB,397.7,35.71,5.0
+A plain,Matern,5,MUI psi=2,1.0,14.136,35.66,0.0448,LTB,381.7,35.37,5.34
+A plain,Matern,5,EI,1.0,14.136,35.66,0.0448,LTB,381.7,35.37,5.34
+A plain,Matern,10,MUI psi=0,1.484,13.39,33.81,0.026,LTB,514.2,38.11,2.6
+A plain,Matern,10,MUI psi=0.5,1.097,13.39,33.81,0.026,LTB,469.7,37.79,2.92
+A plain,Matern,10,MUI psi=1,1.0,13.39,33.81,0.026,separation,438.7,36.06,4.65
+A plain,Matern,10,MUI psi=2,1.0,13.39,33.81,0.026,separation,438.7,36.06,4.65
+A plain,Matern,10,EI,7.0,12.458,33.56,0.0277,bend,934.6,32.04,8.67
+B strength,RBF,1,MUI psi=0,1.097,16.0,52.86,0.0844,LTB,215.5,28.06,12.65
+B strength,RBF,1,MUI psi=0.5,1.097,16.0,52.86,0.0844,LTB,215.5,28.06,12.65
+B strength,RBF,1,MUI psi=1,2.645,16.0,44.9,0.305,LTB,411.6,32.29,8.42
+B strength,RBF,1,MUI psi=2,2.645,16.0,44.9,0.305,LTB,411.6,32.29,8.42
+B strength,RBF,1,EI,1.097,16.0,52.86,0.0844,LTB,215.5,28.06,12.65
+B strength,RBF,3,MUI psi=0,2.645,13.39,38.43,0.0477,bend,612.8,36.76,3.95
+B strength,RBF,3,MUI psi=0.5,2.548,13.39,38.42,0.0486,bend,604.7,36.86,3.85
+B strength,RBF,3,MUI psi=1,2.548,13.39,38.42,0.0486,bend,604.7,36.86,3.85
+B strength,RBF,3,MUI psi=2,1.0,7.61,34.89,0.1416,separation,755.0,33.11,7.6
+B strength,RBF,3,EI,2.548,13.39,38.42,0.0486,bend,604.7,36.86,3.85
+B strength,RBF,5,MUI psi=0,1.0,16.0,40.46,0.0553,LTB,206.6,28.06,12.65
+B strength,RBF,5,MUI psi=0.5,1.0,16.0,40.46,0.0553,LTB,206.6,28.06,12.65
+B strength,RBF,5,MUI psi=1,1.0,16.0,40.46,0.0553,LTB,206.6,28.06,12.65
+B strength,RBF,5,MUI psi=2,1.0,16.0,40.46,0.0553,LTB,206.6,28.06,12.65
+B strength,RBF,5,EI,1.0,16.0,40.46,0.0553,LTB,206.6,28.06,12.65
+B strength,RBF,10,MUI psi=0,1.0,16.0,46.21,0.0857,LTB,206.6,28.06,12.65
+B strength,RBF,10,MUI psi=0.5,1.0,16.0,46.21,0.0857,LTB,206.6,28.06,12.65
+B strength,RBF,10,MUI psi=1,1.0,16.0,46.21,0.0857,LTB,206.6,28.06,12.65
+B strength,RBF,10,MUI psi=2,1.0,16.0,46.21,0.0857,LTB,206.6,28.06,12.65
+B strength,RBF,10,EI,1.0,16.0,46.21,0.0857,LTB,206.6,28.06,12.65
+B strength,Matern,1,MUI psi=0,1.0,16.0,51.17,0.0987,LTB,206.6,28.06,12.65
+B strength,Matern,1,MUI psi=0.5,1.0,16.0,51.17,0.0987,LTB,206.6,28.06,12.65
+B strength,Matern,1,MUI psi=1,1.0,16.0,51.17,0.0987,LTB,206.6,28.06,12.65
+B strength,Matern,1,MUI psi=2,1.0,16.0,51.17,0.0987,LTB,206.6,28.06,12.65
+B strength,Matern,1,EI,1.0,16.0,51.17,0.0987,LTB,206.6,28.06,12.65
+B strength,Matern,3,MUI psi=0,2.839,13.763,37.65,0.054,bend,590.0,35.42,5.29
+B strength,Matern,3,MUI psi=0.5,2.645,13.576,37.61,0.0601,bend,591.4,36.08,4.63
+B strength,Matern,3,MUI psi=1,2.548,13.39,37.51,0.0634,bend,604.7,36.86,3.85
+B strength,Matern,3,MUI psi=2,1.0,7.983,34.14,0.1354,separation,746.9,33.77,6.94
+B strength,Matern,3,EI,2.548,13.39,37.51,0.0634,bend,604.7,36.86,3.85
+B strength,Matern,5,MUI psi=0,1.0,16.0,38.85,0.0722,LTB,206.6,28.06,12.65
+B strength,Matern,5,MUI psi=0.5,1.0,16.0,38.85,0.0722,LTB,206.6,28.06,12.65
+B strength,Matern,5,MUI psi=1,1.0,16.0,38.85,0.0722,LTB,206.6,28.06,12.65
+B strength,Matern,5,MUI psi=2,1.0,16.0,38.85,0.0722,LTB,206.6,28.06,12.65
+B strength,Matern,5,EI,1.0,16.0,38.85,0.0722,LTB,206.6,28.06,12.65
+B strength,Matern,10,MUI psi=0,1.0,16.0,46.03,0.0913,LTB,206.6,28.06,12.65
+B strength,Matern,10,MUI psi=0.5,1.0,16.0,46.03,0.0913,LTB,206.6,28.06,12.65
+B strength,Matern,10,MUI psi=1,1.0,16.0,46.03,0.0913,LTB,206.6,28.06,12.65
+B strength,Matern,10,MUI psi=2,1.0,16.0,46.03,0.0913,LTB,206.6,28.06,12.65
+B strength,Matern,10,EI,1.0,16.0,46.03,0.0913,LTB,206.6,28.06,12.65
+C features,RBF,1,MUI psi=0,2.258,13.763,39.61,0.0477,LTB,538.1,35.82,4.89
+C features,RBF,1,MUI psi=0.5,2.258,13.763,39.61,0.0477,LTB,538.1,35.82,4.89
+C features,RBF,1,MUI psi=1,2.258,13.763,39.61,0.0477,LTB,538.1,35.82,4.89
+C features,RBF,1,MUI psi=2,2.258,13.576,39.4,0.0506,bend,558.0,36.43,4.28
+C features,RBF,1,EI,2.258,13.763,39.61,0.0477,LTB,538.1,35.82,4.89
+C features,RBF,3,MUI psi=0,2.065,13.576,38.28,0.0478,LTB,541.5,36.64,4.07
+C features,RBF,3,MUI psi=0.5,2.065,13.576,38.28,0.0478,LTB,541.5,36.64,4.07
+C features,RBF,3,MUI psi=1,2.161,13.576,38.23,0.0498,LTB,549.7,36.53,4.18
+C features,RBF,3,MUI psi=2,2.258,13.576,38.13,0.0512,bend,558.0,36.43,4.28
+C features,RBF,3,EI,2.161,13.576,38.23,0.0498,LTB,549.7,36.53,4.18
+C features,RBF,5,MUI psi=0,2.065,13.576,36.38,0.0356,LTB,541.5,36.64,4.07
+C features,RBF,5,MUI psi=0.5,2.065,13.576,36.38,0.0356,LTB,541.5,36.64,4.07
+C features,RBF,5,MUI psi=1,2.065,13.763,36.24,0.0408,LTB,521.3,36.01,4.7
+C features,RBF,5,MUI psi=2,2.258,14.322,35.46,0.0554,LTB,497.5,35.2,5.51
+C features,RBF,5,EI,2.161,14.136,35.66,0.0526,LTB,498.9,35.26,5.45
+C features,RBF,10,MUI psi=0,1.387,13.203,34.1,0.0284,bend,528.1,38.96,1.75
+C features,RBF,10,MUI psi=0.5,1.29,13.203,34.1,0.0285,LTB,519.1,39.05,1.66
+C features,RBF,10,MUI psi=1,1.194,13.203,34.09,0.0286,LTB,509.1,39.06,1.65
+C features,RBF,10,MUI psi=2,1.0,13.39,34.07,0.0292,separation,438.7,36.06,4.65
+C features,RBF,10,EI,1.0,13.949,33.64,0.0336,LTB,397.7,35.71,5.0
+C features,Matern,1,MUI psi=0,1.484,13.203,38.46,0.0312,bend,537.0,38.86,1.85
+C features,Matern,1,MUI psi=0.5,2.065,13.576,38.34,0.0544,LTB,541.5,36.64,4.07
+C features,Matern,1,MUI psi=1,2.258,13.763,38.31,0.0557,LTB,538.1,35.82,4.89
+C features,Matern,1,MUI psi=2,2.161,13.576,38.29,0.0562,LTB,549.7,36.53,4.18
+C features,Matern,1,EI,2.258,13.763,38.31,0.0557,LTB,538.1,35.82,4.89
+C features,Matern,3,MUI psi=0,1.484,13.203,37.66,0.0363,bend,537.0,38.86,1.85
+C features,Matern,3,MUI psi=0.5,2.065,13.576,37.54,0.0516,LTB,541.5,36.64,4.07
+C features,Matern,3,MUI psi=1,2.161,13.576,37.48,0.0533,LTB,549.7,36.53,4.18
+C features,Matern,3,MUI psi=2,2.161,13.576,37.48,0.0533,LTB,549.7,36.53,4.18
+C features,Matern,3,EI,2.161,13.576,37.48,0.0533,LTB,549.7,36.53,4.18
+C features,Matern,5,MUI psi=0,1.774,13.39,36.23,0.0361,LTB,539.2,37.75,2.96
+C features,Matern,5,MUI psi=0.5,2.065,13.576,36.19,0.0402,LTB,541.5,36.64,4.07
+C features,Matern,5,MUI psi=1,2.161,13.763,36.09,0.0432,LTB,529.6,35.91,4.8
+C features,Matern,5,MUI psi=2,2.258,14.136,35.54,0.0527,LTB,508.2,35.22,5.49
+C features,Matern,5,EI,2.161,13.949,35.74,0.0495,LTB,512.7,35.48,5.23
+C features,Matern,10,MUI psi=0,1.29,13.203,33.87,0.0268,LTB,519.1,39.05,1.66
+C features,Matern,10,MUI psi=0.5,1.29,13.203,33.87,0.0268,LTB,519.1,39.05,1.66
+C features,Matern,10,MUI psi=1,1.29,13.203,33.87,0.0268,LTB,519.1,39.05,1.66
+C features,Matern,10,MUI psi=2,1.097,13.39,33.84,0.0273,LTB,469.7,37.79,2.92
+C features,Matern,10,EI,1.0,13.763,33.58,0.0297,LTB,412.1,35.9,4.81
+D residual,RBF,1,MUI psi=0,1.387,11.712,43.03,0.051,bend,647.9,40.04,0.67
+D residual,RBF,1,MUI psi=0.5,1.387,11.712,43.03,0.051,bend,647.9,40.04,0.67
+D residual,RBF,1,MUI psi=1,1.387,11.712,43.03,0.051,bend,647.9,40.04,0.67
+D residual,RBF,1,MUI psi=2,1.387,11.712,43.03,0.051,bend,647.9,40.04,0.67
+D residual,RBF,1,EI,1.387,11.712,43.03,0.051,bend,647.9,40.04,0.67
+D residual,RBF,3,MUI psi=0,1.387,11.712,42.41,0.0558,bend,647.9,40.04,0.67
+D residual,RBF,3,MUI psi=0.5,1.387,11.712,42.41,0.0558,bend,647.9,40.04,0.67
+D residual,RBF,3,MUI psi=1,1.387,11.712,42.41,0.0558,bend,647.9,40.04,0.67
+D residual,RBF,3,MUI psi=2,1.387,11.712,42.41,0.0558,bend,647.9,40.04,0.67
+D residual,RBF,3,EI,1.387,11.712,42.41,0.0558,bend,647.9,40.04,0.67
+D residual,RBF,5,MUI psi=0,1.387,11.712,40.65,0.0502,bend,647.9,40.04,0.67
+D residual,RBF,5,MUI psi=0.5,1.387,11.712,40.65,0.0502,bend,647.9,40.04,0.67
+D residual,RBF,5,MUI psi=1,1.387,11.712,40.65,0.0502,bend,647.9,40.04,0.67
+D residual,RBF,5,MUI psi=2,1.387,11.712,40.65,0.0502,bend,647.9,40.04,0.67
+D residual,RBF,5,EI,1.387,11.712,40.65,0.0502,bend,647.9,40.04,0.67
+D residual,RBF,10,MUI psi=0,1.097,13.203,42.5,0.0428,separation,485.4,38.01,2.7
+D residual,RBF,10,MUI psi=0.5,1.097,13.203,42.5,0.0428,separation,485.4,38.01,2.7
+D residual,RBF,10,MUI psi=1,1.097,13.203,42.5,0.0428,separation,485.4,38.01,2.7
+D residual,RBF,10,MUI psi=2,1.097,13.203,42.5,0.0428,separation,485.4,38.01,2.7
+D residual,RBF,10,EI,1.097,13.203,42.5,0.0428,separation,485.4,38.01,2.7
+D residual,Matern,1,MUI psi=0,1.387,11.712,42.2,0.0539,bend,647.9,40.04,0.67
+D residual,Matern,1,MUI psi=0.5,1.387,11.712,42.2,0.0539,bend,647.9,40.04,0.67
+D residual,Matern,1,MUI psi=1,1.387,11.712,42.2,0.0539,bend,647.9,40.04,0.67
+D residual,Matern,1,MUI psi=2,1.387,11.712,42.2,0.0539,bend,647.9,40.04,0.67
+D residual,Matern,1,EI,1.387,11.712,42.2,0.0539,bend,647.9,40.04,0.67
+D residual,Matern,3,MUI psi=0,1.387,11.712,41.57,0.0547,bend,647.9,40.04,0.67
+D residual,Matern,3,MUI psi=0.5,1.387,11.712,41.57,0.0547,bend,647.9,40.04,0.67
+D residual,Matern,3,MUI psi=1,1.387,11.712,41.57,0.0547,bend,647.9,40.04,0.67
+D residual,Matern,3,MUI psi=2,1.387,11.712,41.57,0.0547,bend,647.9,40.04,0.67
+D residual,Matern,3,EI,1.387,11.712,41.57,0.0547,bend,647.9,40.04,0.67
+D residual,Matern,5,MUI psi=0,1.387,11.712,39.87,0.0444,bend,647.9,40.04,0.67
+D residual,Matern,5,MUI psi=0.5,1.387,11.712,39.87,0.0444,bend,647.9,40.04,0.67
+D residual,Matern,5,MUI psi=1,1.387,11.712,39.87,0.0444,bend,647.9,40.04,0.67
+D residual,Matern,5,MUI psi=2,1.871,8.542,38.65,0.0689,bend,794.7,35.15,5.56
+D residual,Matern,5,EI,1.387,11.712,39.87,0.0444,bend,647.9,40.04,0.67
+D residual,Matern,10,MUI psi=0,1.097,13.203,42.42,0.0441,separation,485.4,38.01,2.7
+D residual,Matern,10,MUI psi=0.5,1.097,13.203,42.42,0.0441,separation,485.4,38.01,2.7
+D residual,Matern,10,MUI psi=1,1.097,13.203,42.42,0.0441,separation,485.4,38.01,2.7
+D residual,Matern,10,MUI psi=2,1.097,13.203,42.42,0.0441,separation,485.4,38.01,2.7
+D residual,Matern,10,EI,1.097,13.203,42.42,0.0441,separation,485.4,38.01,2.7
