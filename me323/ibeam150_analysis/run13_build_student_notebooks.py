@@ -55,10 +55,10 @@ out.to_csv(DATA_DIR / "student_beams_B10_L150.csv", index=False)
 out.to_csv(DRAFTS / "student_beams_B10_L150.csv", index=False)
 print("wrote student_beams_B10_L150.csv (15 beams) to data/ and Module1_drafts/")
 
-# frozen class results (2026-07-20 widened-box re-freeze, query policy v3;
-# GT = gpf_sw_matern_sep on all 85 usable tests, unchanged — see ground_truth.py)
-EQ_B, EQ_H, EQ_SW, EQ_N = 1.10, 13.25, 38.02, 482.6
-GP_B, GP_H, GP_SW, GP_N = 1.00, 13.39, 36.06, 438.7
+# frozen class results (2026-07-21 full-data-physics-calibration re-freeze;
+# GT = gpr_str_matern_cal on all 85 usable tests — see ground_truth.py)
+EQ_B, EQ_H, EQ_SW, EQ_N = 1.10, 13.25, 37.48, 475.7
+GP_B, GP_H, GP_SW, GP_N = 1.00, 13.39, 36.65, 445.8
 
 # ----------------------------------------------------------------------------------
 # 2. shared source blocks (student-facing, self-contained)
@@ -574,7 +574,7 @@ md('''## 9. Calibrate the three parameters
 Now automate the search. The loss is mean squared log-error, so comparable
 percentage misses receive comparable weight:
 
-$$L(\\sigma_y,k,\\tau_i)=\\frac{1}{14}\\sum_{i=1}^{14}
+$$L(\\sigma_y,k,\\tau_i)=\\frac{1}{15}\\sum_{i=1}^{15}
 \\left(\\ln P_{pred,i}-\\ln P_{meas,i}\\right)^2.$$
 
 Fill in the loss. A coarse search and Nelder-Mead polish are provided.'''),
@@ -957,11 +957,9 @@ for col, pct in enumerate([1, 3, 10]):
         fig.colorbar(cf, ax=axes[row, col])
 plt.tight_layout(); plt.show()
 print(pd.DataFrame(noise_rows).round(3).to_string(index=False))
-print("\\nCHECKPOINT: all three settings agree on (1.00, 13.39) -- the untested"
-      " thin-b strip pulls the upper interval regardless of the assumed noise."
-      " That agreement is a local fact about this argmax, not a vote for any"
-      " noise value: the medians and sigmas underneath it differ a lot, and a"
-      " different acquisition rule could still split them.")'''),
+print("\\nCHECKPOINT: 1% noise recommends (1.58, 14.88), while 3% and 10%"
+      " recommend (1.00, 13.39). The action is assumption-sensitive: changing"
+      " alpha changes both the fitted surface and its epistemic uncertainty.")'''),
 md('''A noise value can be a physical repeatability estimate and a regularization
 assumption. If the recommendation moves, the action is model-assumption
 sensitive. If it does not, that one decision is locally robust; the noise value
@@ -1044,6 +1042,24 @@ plt.tight_layout(); plt.show()
 print(f"MUI psi=1: b={x_mui[0]:.2f}, H_web={x_mui[1]:.2f}")
 print(f"EI xi=.01: b={x_ei[0]:.2f}, H_web={x_ei[1]:.2f}")
 print("EI checkpoint: b=«EI_B», H_web=«EI_H».")'''),
+md('''### Where the stars landed: on the wall
+
+Before moving on, notice *where* section 6 put its stars: b = 1.00 is not an
+interior point. It is the wall of the design box — an edge the class box was
+only recently widened to include, with exactly one tested beam on it
+(beam 15). A boundary recommendation carries a message an interior one does
+not: the acquisition surface was still rising when it hit the wall, so the
+model would keep going left if the box allowed it. Treat edge picks — and
+corner picks doubly, where two walls meet — as higher-risk by default. At an
+edge the data is one-sided (every tested neighbor sits on the same side);
+one step past it, the prediction is pure kernel assumption. Box edges are
+also where physical extremes concentrate — the thinnest printable web, the
+lightest section (H_web = 16 minimizes mass at any b) — and extremes are
+where new failure modes switch on: the handout's flange-web separation notes
+cluster in exactly this thin-b family (beams 12, 14, and 15). None of this
+forbids an edge design. It raises the burden of proof, and Submission 1 will
+ask you to carry it: nearby evidence, a physics argument, or an honest "we
+are buying information."'''),
 md('''## 7. Final filter: the one class GP design
 
 You explored alternatives, but the class query must be reproducible: locking
@@ -1128,8 +1144,9 @@ key_md('''## KEY: memo targets
    beams 12, 14, and 15 all separated at the flange-web interface. Failure
    morphology, layer separation, fixture tipping, and fracture progression
    are absent from both scalar targets.
-5. Use the generated 1/3/10% table. Stability of one recommendation is local
-   robustness, not validation of the assumed noise or kernel.'''),
+5. Use the generated 1/3/10% table. The 1% fit recommends (1.58, 14.88), while
+   the 3% and 10% fits recommend (1.00, 13.39), direct evidence that this action
+   is sensitive to the assumed noise and the surface it regularizes.'''),
 ]
 
 # =========================== SUBMISSION 1 ==========================================
@@ -1512,7 +1529,7 @@ How to discern: pick MUI when you want the risk dial in your own hands and
 are prepared to defend a ψ in the memo; pick EI when you would rather let the
 model's probabilities make the trade — and defend *that* delegation instead.
 With the default lane, kernel, and noise, the two rules split: MUI ψ = 1
-exploits the thin-b ridge, while EI — measuring improvement over a {EQ_SW}
+exploits the thin-web ridge, while EI — measuring improvement over a {EQ_SW}
 incumbent it doubts it can beat nearby — gambles on the untested high-web
 corner near «S1_EI_NEAR». The disagreement is itself evidence: it tells you
 the model sees no cheap wins left, and your memo should say which side of
@@ -1523,19 +1540,49 @@ and the failure-note table are also in front of you — the standard move is to
 strike regions the notes make you distrust (which beams peeled apart, and
 where?).
 
+One pattern earns that scrutiny before any other: a recommendation sitting
+on an edge of the design box, and doubly so in a corner, where two edges
+stack. An interior optimum is a claim the data can bracket from all sides; a
+boundary optimum means the acquisition surface was still rising when it ran
+out of box, so the model is really pointing at territory *outside* the box,
+where it has no data at all. Edges are where your evidence is one-sided and
+extrapolation is cheapest. They are also where physical extremes concentrate
+— H_web = 16 is the lightest section at any b, so a model that overestimates
+strength there gets an unearned strength-to-weight boost from the mass
+division — and where the unmodeled mechanisms tend to live: the separation
+notes cluster along thin b, and the tall-web corner is the LTB territory
+where beam 9 twisted off its stand. An edge pick is not automatically wrong
+— beam 16, the best beam tested, sits 0.10 mm from the b = 1.0 wall — but it
+is automatically a bigger claim. Carrying it takes one of three things in
+the memo: tested beams nearby, a physics story that survives the four-panel
+map, or a plain statement that the print is buying information rather than
+performance.
+
 For orientation only: the *default* recipe — lane A, RBF, 3% noise, MUI
 ψ = 1 — lands at **(b ≈ «DEF_B», H_web ≈ «DEF_H»)**. You are free to submit
-that; you are also free to beat it. Say why either way. Two things to
-notice about it before you adopt it: it sits 0.25 mm from the tested
-equation beam (beam 16 at ({EQ_B:.2f}, {EQ_H})), and it sits on the b = 1.0
-boundary — the geometry family where beams 12, 14, and 15 peeled apart at
-the flange-web interface, and where the calibrated physics calls the mode
-*separation*.
+that; you are also free to beat it. Before adopting it, compare its coordinates
+with the two class-query beams and with the thin-web examples where beams 12,
+14, and 15 peeled apart at the flange-web interface. The MUI default is now an
+interior point, but it remains in the thin, tall neighborhood; the default EI
+comparison returns to the b = 1.0 wall, where the edge caution above applies.
 
 **If your pick lands within |Δb| < 0.15 mm and |ΔH_web| < 0.30 mm of a
 tested beam, the memo must say what a near-replicate print buys you.**
 Under a 3–4% test scatter, verifying a suspiciously good result is a
 legitimate answer; sleepwalking into a repeat is not.'''),
+key_md('''## KEY: the edge warning, quantified (staff only)
+
+The staff sweep of all 160 knob combinations of this notebook
+(`ME323_Module1_Submission1_KnobSweep_FACULTY.ipynb`, table in
+`submission1_knob_sweep.csv`) scores every recipe's final pick against the
+frozen ground truth. The recipes that pinned the minimum-mass H_web = 16
+edge — 25 of lane B's 40 — predicted 39.0–48.9 N/g there; the ground truth
+pays 27.97 N/g, the largest model-reality gap in the sweep. The GT optimum
+is interior, and lane D's modal recommendation, (1.387, 11.712), returns
+40.83 N/g without touching a wall. Grading note: an edge or corner
+preregistration whose memo carries none of the three defenses above is the
+sweep's strongest single predictor of a weak beam — raise it at the
+preregistration review, before the print.'''),
 code('''from scipy.stats import norm
 
 ACQ = "MUI"          # <<< your rule: "MUI" | "EI"
@@ -1628,11 +1675,11 @@ key_md('''## KEY: memo targets
    scattered interface strength).
 3. The final cell prints all required evidence. Larger `psi` spends more of the
    decision on epistemic uncertainty. Note for grading: at the default lane,
-   kernel, and noise, MUI ψ=1 and EI now *split* — MUI exploits the thin-b
+   kernel, and noise, MUI ψ=1 and EI now *split* — MUI exploits the thin-web
    ridge at (b ≈ «DEF_B», H_web ≈ «DEF_H»); EI chases the untested high-web corner near
    «S1_EI_NEAR», because the model doubts anything nearby beats the «EQ_SW_T»
-   incumbent. Neither pick is automatically right: the MUI point sits in
-   separation-note territory and near-replicates beam 16; the EI point is a
+   incumbent. Neither pick is automatically right: the MUI point sits in the
+   thin-web neighborhood implicated by the separation notes; the EI point is a
    long-shot the failure notes (beam 9 twisted off the stand at thin-b,
    high-H) argue against. Credit students who name the split, say which risk
    they took, and know what their `NOISE_PCT` did to the maps. The serious
@@ -2036,10 +2083,9 @@ ei_b, ei_H = xe
 noise_recs = [(int(r["noise_pct"]), round(float(r["b"]), 2),
                round(float(r["H_web"]), 2))
               for r in ns2["noise_rows"]]
-uniq = {r[1:] for r in noise_recs}
-assert uniq == {(round(GP_B, 2), round(GP_H, 2))}, \
-    f"noise refits no longer all agree on ({GP_B}, {GP_H}): {noise_recs} -- " \
-    "rewrite the P2 noise-checkpoint text and the locked-cell narrative"
+assert noise_recs == [(1, 1.58, 14.88),
+                      (3, round(GP_B, 2), round(GP_H, 2)),
+                      (10, round(GP_B, 2), round(GP_H, 2))], noise_recs
 
 print("running Submission 1 solution ...")
 ns3, out3 = run_solution(S1)
@@ -2060,7 +2106,7 @@ def loo_line_txt(kern):
     return ",  ".join(f"{lane} {loo[kern][lane]:.2f}" for lane in
                       ("A plain", "B strength", "C features", "D residual")) + " N/g"
 # the S1 section-4 and KEY text say MUI psi=1 and EI SPLIT at the default knobs,
-# MUI on the b=1.0 ridge and EI in the untested high-web corner -- verify all of it
+# MUI on the thin-web ridge and EI in the untested high-web corner -- verify both
 from scipy.stats import norm as _norm
 _best = np.log(ns3["df"].str_to_weight.max())
 _zz = (np.log(ns3["MU"]) - _best) / ns3["STD"]
@@ -2069,10 +2115,8 @@ _iei = np.unravel_index(np.argmax(_score_ei), _score_ei.shape)
 _ei_b, _ei_H = float(ns3["BB"][_iei]), float(ns3["HH"][_iei])
 assert (abs(_ei_b - ns3["b_final"]) > 0.005 or abs(_ei_H - ns3["H_final"]) > 0.005), \
     "EI and MUI psi=1 agree again at the default knobs -- rewrite the S1 section-4/KEY split text"
-assert abs(ns3["b_final"] - 1.0) < 0.005 and _ei_H > ns3["H_final"] + 1.0, \
-    (ns3["b_final"], _ei_b, _ei_H)
-assert abs(float(np.hypot(ns3["b_final"] - EQ_B, ns3["H_final"] - EQ_H)) - 0.25) < 0.05, \
-    "the 'sits 0.25 mm from the tested equation beam' sentence in S1 section 4 is stale"
+assert ns3["b_final"] < 1.6 and _ei_H > 14.5, \
+    (ns3["b_final"], ns3["H_final"], _ei_b, _ei_H)
 S1_EI_NEAR = f"({_ei_b:.2f}, {_ei_H:.1f})"
 print(f"S1 default-lane final: ({ns3['b_final']:.2f}, {ns3['H_final']:.2f}); "
       f"EI split verified, EI pick near {S1_EI_NEAR}")
@@ -2180,7 +2224,7 @@ print(f"  P1: best beam {TOKENS['«BEST_ID»']} ({TOKENS['«BEST_B»']},{TOKENS[
       f"cal ({ns1['SY_CAL']/1e6:.1f} MPa, {ns1['K_CAL']:.3f}, "
       f"{ns1['TAU_CAL']/1e6:.2f} MPa);  eq ({EQ_B}, {EQ_H})")
 print(f"  P2: MUI1 ({TOKENS['«MUI1_B»']}, {TOKENS['«MUI1_H»']}) pred {TOKENS['«MUI1_M»']};  "
-      f"EI ({TOKENS['«EI_B»']}, {TOKENS['«EI_H»']});  noise refits all agree on the locked design")
+      f"EI ({TOKENS['«EI_B»']}, {TOKENS['«EI_H»']});  1% noise splits from the 3%/10% design")
 print(f"  S1: LOO RBF {loo_line_txt('RBF')};  Matern {loo_line_txt('Matern')};  "
       f"default final ({TOKENS['«DEF_B»']}, {TOKENS['«DEF_H»']})")
 print(f"  S2: lightweight ({TOKENS['«LT_B»']}, {TOKENS['«LT_H»']}) mass {TOKENS['«LT_M»']} g")

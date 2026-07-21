@@ -19,7 +19,7 @@ Today: a model that learns from sparse data and tells you how much it does not k
 
 - You coded three capacity branches — flexural yield, junction shear-flow separation, LTB — calibrated $(\sigma_y, k, \tau_i)$, and took the minimum: one capacity number per design.
 - The parity plot showed where that number holds and where it misses.
-- Your optimizer picked **b = 1.10, H_web = 13.25 mm**: predicted 48.7 N/g. Staff queried the **ground truth model** — a frozen model fit to a prior campaign of real bend tests, standing in for the testing machine — and it returned 482.6 N = 38.02 N/g on the estimated-mass basis. At that geometry all three mode capacities tie within ~1%, so the "LTB" proxy label is a knife-edge call.
+- Your optimizer picked **b = 1.10, H_web = 13.25 mm**: predicted 48.7 N/g. Staff queried the **ground truth model** — a frozen model fit to a prior campaign of real bend tests, standing in for the testing machine — and it returned 475.7 N = 37.48 N/g on the estimated-mass basis. At that geometry all three mode capacities tie within ~1%, so the "LTB" proxy label is a knife-edge call.
 
 The physics gave you a *point estimate* sitting on a mode boundary, the region where you trust it least. Today's tool adds what is missing: a statement of confidence.
 
@@ -112,7 +112,7 @@ The length scale answers: how far does one test's influence reach? Too short and
 
 ![height:360px](figures/fig_noise_fits.png)
 
-We assume 3% as the class working value. Pre-lab 2 refits at 1%, 3%, and 10% as a sensitivity check. The recommendation does not move at all — 1%, 3%, and 10% all pick (1.00, 13.39), the untested thin-b strip the widened box opened. Local stability does not prove the noise assumption correct.
+We assume 3% as the class working value. Pre-lab 2 refits at 1%, 3%, and 10% as a sensitivity check. The 1% fit moves to (1.58, 14.88), while the 3% and 10% fits pick (1.00, 13.39). The recommendation is assumption-sensitive.
 
 ---
 
@@ -210,6 +210,6 @@ In `ME323_Module1_Prelab2_ML`:
 - compare vanilla GP setup choices and read posterior median, epistemic uncertainty, and total predictive uncertainty,
 - write both MUI and EI,
 - refit under 1% / 3% / 10% noise and note what moves,
-- record the locked class design: **b = 1.00 mm, H_web = 13.39 mm**, posterior median 37.1 N/g.
+- record the locked class design: **b = 1.00 mm, H_web = 13.39 mm**, posterior median 36.7 N/g.
 
 That beam is the class's second ground-truth query. Bring your rationale, not just the number.

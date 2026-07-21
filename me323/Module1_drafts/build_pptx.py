@@ -299,7 +299,7 @@ def build_lecture2():
     bullets_slide(prs, "Where Pre-lab 1 left you", [
         ("You coded three capacity branches — flexural yield, junction shear-flow separation, LTB — calibrated (sigma_y, k, tau_i), and took the minimum: one capacity number per design.", 1),
         ("The parity plot showed where that number holds and where it misses.", 1),
-        ("Your optimizer picked b = 1.10, H_web = 13.25 mm: predicted 48.7 N/g. Staff queried the ground truth model — a frozen model fit to a prior campaign of real bend tests, standing in for the testing machine — and it returned 482.6 N = 38.02 N/g on the estimated-mass basis. There all three mode capacities tie within ~1%, so the 'LTB' proxy is a knife-edge call.", 1),
+        ("Your optimizer picked b = 1.10, H_web = 13.25 mm: predicted 48.7 N/g. Staff queried the ground truth model — a frozen model fit to a prior campaign of real bend tests, standing in for the testing machine — and it returned 475.7 N = 37.48 N/g on the estimated-mass basis. There all three mode capacities tie within ~1%, so the 'LTB' proxy is a knife-edge call.", 1),
         "The physics gave you a point estimate sitting on a mode boundary, the region where you trust it least. Today's tool adds what is missing: a statement of confidence.",
     ], size=20)
 
@@ -340,7 +340,7 @@ def build_lecture2():
                 source="No single right answer; there are defensible and indefensible ones.")
     image_slide(prs, "So is the noise", "figures/fig_noise_fits.png",
                 caption="We assume 3% as the class working value. Pre-lab 2 refits at 1%, 3%, and 10%.",
-                source="The recommendation does not move: 1%, 3%, and 10% all pick (1.00, 13.39) — the untested thin-b strip the widened box opened. Sensitivity evidence, not proof of the noise value.")
+                source="The recommendation moves: 1% picks (1.58, 14.88), while 3% and 10% pick (1.00, 13.39). The action is assumption-sensitive.")
 
     bullets_slide(prs, "Epistemic and aleatory uncertainty do different jobs", [
         ("Epistemic: uncertainty about the latent surface because tests are sparse. Informative beams can reduce it.", 1),
@@ -398,7 +398,7 @@ def build_lecture2():
         ("compare vanilla GP setups and read posterior median, epistemic uncertainty, and total predictive uncertainty,", 1),
         ("write both MUI and EI,", 1),
         ("refit under 1% / 3% / 10% noise and note what moves,", 1),
-        ("record the locked class design: b = 1.00 mm, H_web = 13.39 mm, posterior median 37.1 N/g.", 1),
+        ("record the locked class design: b = 1.00 mm, H_web = 13.39 mm, posterior median 36.7 N/g.", 1),
         "That beam is the class's second ground-truth query. Bring your rationale, not just the number.",
     ], size=20)
 
