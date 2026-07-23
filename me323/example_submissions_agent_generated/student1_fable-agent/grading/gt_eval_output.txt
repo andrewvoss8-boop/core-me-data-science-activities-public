@@ -1,0 +1,14 @@
+calibration: sy=65.242 MPa, k=0.424578, tau_i=21.056 MPa
+
+STUDENT PICK                 (1.39, 13.20): GT  38.74 N/g =  525.6 N, mass 13.57 g
+frozen eq design (b16)       (1.10, 13.25): GT  37.48 N/g =  475.7 N, mass 12.69 g
+frozen gp design (b17)       (1.00, 13.39): GT  36.65 N/g =  445.8 N, mass 12.17 g
+rival: unconstrained acq     (1.00, 13.20): GT  36.47 N/g =  456.4 N, mass 12.52 g
+rival: lane D pick           (1.39, 11.71): GT  40.83 N/g =  661.1 N, mass 16.19 g
+
+GT optimum (fine grid): 42.18 N/g at (1.425, 12.100)
+student pick regret vs GT optimum: 3.44 N/g (8.1%)
+student pick beats 96.1% of the design box (by GT mean)
+
+Prelab1-cal: P_bend=635.3 P_sep=798.9 P_LTB=635.3 -> cap 635.3 N (bend), 46.82 N/g
+GT-cal: P_bend=620.5 P_sep=1003.7 P_LTB=531.3 -> cap 531.3 N (LTB), 39.16 N/g
