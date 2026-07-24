@@ -55,6 +55,56 @@ out.to_csv(DATA_DIR / "student_beams_B10_L150.csv", index=False)
 out.to_csv(DRAFTS / "student_beams_B10_L150.csv", index=False)
 print("wrote student_beams_B10_L150.csv (15 beams) to data/ and Module1_drafts/")
 
+# Trace-shape claims below are instructional evidence, so derive and guard their
+# numerical anchors from the issued trace file instead of inferring mechanism
+# from the failure-note labels.
+traces = pd.read_csv(DATA_DIR / "student_traces_4beams.csv")
+assert set(traces.beam_id.unique()) == {6, 9, 13, 14}
+
+def postpeak_metrics(beam_id):
+    g = traces.loc[traces.beam_id == beam_id].reset_index(drop=True)
+    assert np.all(np.diff(g.time_s) >= 0)
+    assert np.all(np.diff(g.displacement_mm) >= 0)
+    i_peak = int(np.argmax(g.force_N.to_numpy()))
+    peak_N = float(g.force_N.iloc[i_peak])
+    peak_x = float(g.displacement_mm.iloc[i_peak])
+    post = g.iloc[i_peak:].copy()
+    dx = post.displacement_mm.to_numpy() - peak_x
+    force = post.force_N.to_numpy()
+
+    def first_dx_at_or_below(fraction):
+        hits = np.flatnonzero(force <= fraction * peak_N)
+        assert len(hits), (beam_id, fraction)
+        return float(dx[hits[0]])
+
+    return {
+        "peak_N": peak_N,
+        "dx95": first_dx_at_or_below(0.95),
+        "dx75": first_dx_at_or_below(0.75),
+        "dx25": first_dx_at_or_below(0.25),
+        "force_at_1mm_fraction": (
+            float(np.interp(1.0, dx, force) / peak_N) if dx[-1] >= 1.0 else None
+        ),
+    }
+
+TRACE = {bid: postpeak_metrics(bid) for bid in (6, 9, 13, 14)}
+trace_peaks = pd.Series({bid: m["peak_N"] for bid, m in TRACE.items()})
+handout_peaks = out.set_index("beam_id").strength_N.loc[trace_peaks.index]
+assert np.allclose(trace_peaks, handout_peaks, atol=0.05)
+
+# These bounds encode the actual counterexamples used in the lesson:
+# separation can be abrupt, partial fracture can be gradual, complete fracture
+# can collapse only after a delay, and twist-off can shed gradually before a
+# terminal loss of the load path.
+assert TRACE[14]["dx25"] < 0.05
+assert TRACE[13]["dx95"] > 2.0 and TRACE[13]["dx25"] > 5.0
+assert 0.8 < TRACE[6]["dx95"] < 0.9
+assert TRACE[6]["dx25"] - TRACE[6]["dx95"] < 0.10
+assert 0.83 < TRACE[9]["force_at_1mm_fraction"] < 0.85
+assert TRACE[9]["dx25"] - TRACE[9]["dx75"] < 0.01
+assert "No vertical fracture" in out.set_index("beam_id").failure_note.loc[14]
+assert "not completely through" in out.set_index("beam_id").failure_note.loc[13]
+
 # frozen class results (2026-07-21 full-data-physics-calibration re-freeze;
 # GT = gpr_str_matern_cal on all 85 usable tests — see ground_truth.py)
 EQ_B, EQ_H, EQ_SW, EQ_N = 1.10, 13.25, 37.48, 475.7
@@ -228,20 +278,23 @@ df[["beam_id", "b", "H", "weight_g", "mass_est_g", "mass_delta_pct",
 md("""## 1b. Where a strength number comes from: reduce four raw traces
 
 Every `strength_N` above was reduced from a force–displacement trace recorded
-on the test machine. Here are four of those traces, verbatim from the campaign
-(downsampled; the peak row is preserved exactly): beams **6** and **13**
+on the test machine. Here are four campaign traces with recorded samples
+downsampled and the peak row preserved exactly: beams **6** and **13**
 (vertical fracture, complete and partial), beam **14** (flange–web
 separation), and beam **9** (the one that twisted off the test stand). Your
 group will do this same reduction on your own beam's trace after test day —
 so do it here first, where the answer is checkable.
 
 Reduce each trace to one number and compare against the handout column. Then
-read the *shapes*: an abrupt cliff after the peak is a fracture; a rounded
-peak that sheds load gradually is a different physical story. And look hard at
-beam 9 — the machine recorded a peak of 314.4 N, but the beam left
-the load path by twisting, not by breaking. Whether that number is a material
-strength, a fixture/stability artifact, or both is a judgment call, and every
-model downstream of this table inherits whatever you decide."""),
+read the *shapes as evidence, not as mechanism labels*: immediate load loss,
+delayed collapse, and progressive post-peak shedding are different structural
+responses, but a force–displacement curve alone does not tell you whether the
+cause was vertical fracture, flange–web separation, or loss of the load path
+through twist. Compare the curve with the specimen and fixture observations.
+Look especially hard at beam 9 — the machine recorded a peak of 314.4 N, but
+the beam left the load path by twisting, not by breaking. Whether that number
+is a material strength, a fixture/stability artifact, or both is a judgment
+call, and every model downstream of this table inherits whatever you decide."""),
 
 code("""TURL = ("https://raw.githubusercontent.com/andrewvoss8-boop/"
         "core-me-data-science-activities-public/main/data/student_traces_4beams.csv")
@@ -269,10 +322,18 @@ print("CHECKPOINT: each trace peak should match the handout to 0.1 N")
 print(cmp.round(1))
 """),
 
-md("""Two of these curves end in a cliff and two do not, and the cliff beams are the
-ones whose notes say *fracture*: the curve shape and the note record the same
-event. `strength_N` is a decision about a curve, and beam 9 is the case where
-the call is arguable (memo question 5)."""),
+md("""These curves rule out a simple one-to-one mapping from shape to failure
+label. Beam 14's recorded flange–web separation falls from its peak to about
+25% within «TRACE14_D25» mm, while beam 13's partial vertical fracture remains
+above 95% of peak for about «TRACE13_D95» mm and takes «TRACE13_D25» mm to
+reach 25%. Beam 6 carries more than 95% of peak for «TRACE6_D95» mm before a
+delayed collapse over roughly the next «TRACE6_CLIFF» mm. Beam 9 still carries
+about «TRACE9_F1_PCT»% of peak 1 mm after the peak, and its trace then ends in
+a sharp terminal drop; the test note reports that it twisted off the stand.
+Shape tells you whether capacity loss was immediate, delayed, or progressive;
+the observation note records the morphology or fixture event seen during the
+test. Use both when interpreting the mechanism. The peak recorded as
+`strength_N` does not encode that distinction (memo question 5)."""),
 
 md('''## 2. Strength-to-weight
 
@@ -667,10 +728,12 @@ graded with it. Do not re-answer them in the Submission 1 memo.
    back from b = 1.0 by the calibrated LTB surface. Which observed failures --
    beam 15's note above all -- should reduce your trust in that neighborhood?
 
-5. From section 1b: which trace shapes separate abrupt fracture from gradual
-   failure? Make the call on beam 9 — material strength, fixture/stability
-   artifact, or both — and say how a model trained on that 314.4 N should
-   treat it.
+5. Compare the post-peak behavior of beams 6, 13, 14, and 9. Which show
+   immediate load loss, delayed collapse, gradual shedding, or a combination?
+   Does trace shape alone identify the recorded failure observation? Support
+   your answer with at least one curve–note mismatch. Then make the call on
+   beam 9 — material strength, fixture/stability artifact, or both — and say
+   how a model trained on that 314.4 N should treat it.
 
 Use the final design output, the nominal/calibrated plots, and beam IDs with
 their full failure notes. No additional optimization code is required.'''),
@@ -694,7 +757,21 @@ key_md('''## KEY: memo targets
 4. Beam 15's flange-web separation at b = 1.0 is the direct warning -- the
    calibrated model still overpredicts that beam by about 14%. The model
    has no joint-separation or local plate-failure equation, so an edge optimum
-   is extrapolation into its weakest physics.'''),
+   is extrapolation into its weakest physics.
+5. Strong answers reject a one-to-one shape/mechanism rule. Beam 14 is the
+   immediate cliff even though its note says flange-web separation; beam 13
+   sheds load gradually despite its partial-fracture note; beam 6 carries near
+   peak load before a delayed collapse; and beam 9 sheds gradually before a
+   terminal sharp loss; its note reports that it twisted out of the load path.
+   The curve characterizes how capacity was lost, while the specimen/fixture
+   observation records the morphology or fixture event. Neither alone
+   necessarily establishes a unique causal mechanism. Beam 9's 314.4 N is
+   both a valid system capacity for this exact fixture and a
+   fixture/stability-limited observation, not an intrinsic PLA strength. A
+   model predicting performance on the same fixture may retain it with a
+   tip/twist label or mechanism-aware treatment; it should not use the point
+   as an ordinary bending-strength observation or as direct evidence for
+   $\\sigma_y$.'''),
 ]
 
 # =========================== PRE-LAB 2 =============================================
@@ -745,8 +822,16 @@ the arithmetic mean.
   multiplicative print scatter more natural.
 - Input scale: raw millimeters or standardized coordinates. Scaling changes
   what one numerical unit of distance means to the kernel.
-- Kernel: RBF assumes a very smooth response; Matérn-5/2 permits less smooth
-  variation.
+- Kernel: the prior on shape — what you claim about the strength surface
+  before seeing a single beam. RBF asserts it is infinitely smooth, so
+  strength drifts gently and a sharp crease is all but ruled out; Matérn-5/2
+  asserts only limited smoothness and leaves creases available for the data to
+  confirm or ignore. That is a physical claim here, not a numerical
+  convenience: strength is set by whichever failure mode is weakest — bending,
+  lateral-torsional buckling, or flange-web separation — and each governs its
+  own part of the `(b, H_web)` plane, so the true surface is a `min` of three
+  capacity surfaces with a crease along every boundary where the governing
+  mode changes. RBF prices those creases out of the prior; Matérn keeps them.
 - Length scales: separate ARD scales let `b` and `H_web` vary independently, while
   one shared scale is more strongly regularized.
 - `alpha`: assumed aleatory observation variance. It is not the GP's
@@ -1414,7 +1499,15 @@ becomes code.
 How to discern: the LOO table in section 2 now scores both kernels, so start there —
 remembering the 17-point caveat. Then ask whether you believe this surface
 *has* a crease: the failure-note table says different beams died by different
-mechanisms, which is an argument that it does.
+mechanisms, which is an argument that it does. And the crease is not off in
+some corner you can ignore. Because strength is the `min` of the bending,
+buckling, and separation capacities, each mode governs its own region of the
+`(b, H_web)` box and the seams between regions — where two modes tie — are
+exactly where the ridge of best strength-to-weight runs. The equation-based
+optimum lands on such a seam, all three modes within about 1% of each other.
+So the kernel's smoothness prior bites hardest right where you are shopping for
+a design: RBF renders that ridge as a smooth dome and can nudge your pick off
+the true seam, while Matérn can hold the sharper crest.
 
 **`NOISE_PCT` — how much of the scatter do you trust?**
 The GP receives `alpha = (NOISE_PCT/100)**2` in log space, which reads as:
@@ -1721,7 +1814,9 @@ md("""## 1. Your beam's test result
 **Two things before you type numbers in.** First, the peak load you enter is
 one your group reduced yourselves from your beam's raw force–displacement
 trace — the same reduction you practiced on four campaign traces in Pre-lab 1
-section 1b. Look at your curve's shape (cliff or gradual?) before trusting the peak.
+section 1b. Characterize whether load loss is immediate, delayed, progressive,
+or a terminal loss of the load path, and compare that shape with the specimen
+and fixture observations before interpreting the peak.
 Second, put your preregistration table (filed with Submission 1) next to the
 result *before* reading further: the reflection below is graded against what
 your group predicted on record, not against what is easy to explain now."""),
@@ -2159,6 +2254,12 @@ TOKENS = {
     "«S1_EI_NEAR»": S1_EI_NEAR,
     "«LOO_A_RBF»": f"{loo['RBF']['A plain']:.2f}",
     "«LT_B»": f"{LT_B:.2f}", "«LT_H»": f"{LT_H:.2f}", "«LT_M»": f"{LT_M:.1f}",
+    "«TRACE14_D25»": f"{TRACE[14]['dx25']:.2f}",
+    "«TRACE13_D95»": f"{TRACE[13]['dx95']:.2f}",
+    "«TRACE13_D25»": f"{TRACE[13]['dx25']:.2f}",
+    "«TRACE6_D95»": f"{TRACE[6]['dx95']:.2f}",
+    "«TRACE6_CLIFF»": f"{TRACE[6]['dx25'] - TRACE[6]['dx95']:.2f}",
+    "«TRACE9_F1_PCT»": f"{100*TRACE[9]['force_at_1mm_fraction']:.0f}",
 }
 
 def write_nb(cells, path):
