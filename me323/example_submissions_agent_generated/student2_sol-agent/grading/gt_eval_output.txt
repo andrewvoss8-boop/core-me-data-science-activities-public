@@ -1,0 +1,14 @@
+calibration: sy=65.242 MPa, k=0.424578, tau_i=21.056 MPa
+
+STUDENT PICK (= beam 16)     (1.10, 13.25): GT  37.48 N/g =  475.7 N, mass 12.69 g
+frozen gp design (b17)       (1.00, 13.39): GT  36.65 N/g =  445.8 N, mass 12.17 g
+acq pick before veto         (1.00, 13.20): GT  36.47 N/g =  456.4 N, mass 12.52 g
+rival: rejected explore      (1.39, 14.88): GT  33.07 N/g =  350.9 N, mass 10.61 g
+student1's pick (context)    (1.39, 13.20): GT  38.74 N/g =  525.6 N, mass 13.57 g
+
+GT optimum (fine grid): 42.18 N/g at (1.425, 12.100)
+student pick regret vs GT optimum: 4.70 N/g (11.1%)
+student pick beats 91.9% of the design box (by GT mean)
+
+Prelab1-cal: P_bend=620.4 P_sep=622.9 P_LTB=617.0 -> cap 617.0 N (LTB), 48.60 N/g
+GT-cal: P_bend=606.0 P_sep=782.6 P_LTB=514.3 -> cap 514.3 N (LTB), 40.52 N/g
