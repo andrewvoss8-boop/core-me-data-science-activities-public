@@ -1,0 +1,16 @@
+calibration: sy=65.242 MPa, k=0.424578, tau_i=21.056 MPa
+
+STUDENT PICK                 (1.85, 12.15): GT  41.08 N/g =  680.2 N, mass 16.56 g
+rival: incumbent replicate   (1.10, 13.25): GT  37.48 N/g =  475.7 N, mass 12.69 g
+rival: unfiltered lane D     (1.39, 11.71): GT  40.83 N/g =  661.1 N, mass 16.19 g
+sweep lane-A corner (=b17)   (1.00, 13.39): GT  36.65 N/g =  445.8 N, mass 12.17 g
+sweep lane-C corner          (2.06, 13.58): GT  36.04 N/g =  531.9 N, mass 14.76 g
+student1's pick (context)    (1.39, 13.20): GT  38.74 N/g =  525.6 N, mass 13.57 g
+
+GT optimum (fine grid): 42.18 N/g at (1.425, 12.100)
+student pick regret vs GT optimum: 1.10 N/g (2.6%)
+student pick beats 99.6% of the design box (by GT mean)
+
+mass at pick (GT convention): 16.56 g
+Prelab1-cal: P_bend=720.8 P_sep=1024.3 P_LTB=720.8 -> cap 720.8 N (bend), 43.53 N/g
+GT-cal: P_bend=704.0 P_sep=1286.9 P_LTB=704.0 -> cap 704.0 N (bend), 42.51 N/g
