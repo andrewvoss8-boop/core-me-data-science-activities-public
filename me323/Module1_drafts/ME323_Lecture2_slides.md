@@ -54,7 +54,7 @@ Bayesian thinking: carry a **distribution** over the unknown strength surface, n
 
 ![height:420px](figures/fig_gauss_strength.png)
 
-Where does the 3% come from? Repeat prints of one design — four beams at (1.3, 12.8) spanned 548.6 to 566.1 N. Pooled over every repeated geometry the scatter runs ≈4.4%, with session-to-session and printer-to-printer structure inside it; the class fixes 3% as a stated working value.
+This is exactly ME 239's [fitting Normals to data](https://purduemechanicalengineering.github.io/me-239-intro-to-data-science/lecture12/example-fitting-normals.html) — mean, variance, `st.norm` — done on strength; Pre-lab 2's warm-up replays it on these four beams. Where does the 3% come from? Repeat prints of one design — four beams at (1.3, 12.8) spanned 548.6 to 566.1 N. Pooled over every repeated geometry the scatter runs ≈4.4%, with session-to-session and printer-to-printer structure inside it; the class fixes 3% as a stated working value.
 
 ---
 
@@ -207,6 +207,7 @@ Calibrated physics (with mode boundaries), GP posterior median, their disagreeme
 
 In `ME323_Module1_Prelab2_ML`:
 
+- warm up by rebuilding the GP from ME 239's Normal-fit in four small steps (fit one Normal → covariance → conditioning → many beams at once),
 - compare vanilla GP setup choices and read posterior median, epistemic uncertainty, and total predictive uncertainty,
 - write both MUI and EI,
 - refit under 1% / 3% / 10% noise and note what moves,

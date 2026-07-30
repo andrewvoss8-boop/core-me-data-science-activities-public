@@ -179,13 +179,21 @@ def build_lecture1():
         "The efficient shape and the failure modes pull against each other; resolving that tension is the design problem.",
     ], size=21)
 
+    eq_slide(prs, "Shear in a beam: the check you already know", "eq/vqit.png", [
+        "In each half-span V = P/2. Quick estimate: the web carries it all, tau_avg = V/(b*H_web). The full formula prices the longitudinal shear on ANY horizontal plane: Q(y) is the first moment of the area beyond the plane, t(y) the width there.",
+        "It peaks at the neutral axis (3V/2A for a rectangle) — so that is where the textbook check compares against sigma_y/sqrt(3) = 43.9 MPa.",
+        "Run it: at (b, H_web) = (2, 12) the web would not rupture until ~2495 N, but bending yields the flange at 835 N — a 3x margin.",
+        "Verdict: for a beam made of ONE material, shear never governs here. Ours is not one material.",
+    ])
+
     image_slide(prs, "Flange-web separation: shear flow at the printed junction",
                 "figures/fig_shear_web.png", eq="eq/sepflow.png",
-                caption="Every observed shear-type failure is a flange peeling off the web. The stress on that plane is the classic built-up-beam shear flow (V = P/2).",
-                max_h=3.8)
+                caption="Every observed shear-type failure is a flange peeling off the web — not the most-stressed plane, the weakest one. Slide the same VQ/(I_x t) to the junction: Q becomes the flange's first moment, t the joint width — the classic built-up-beam glue-line check (V = P/2).",
+                source="At the junction the stress is ~14% LOWER than at the neutral axis: this plane fails first because it is weaker, not because it is more stressed.",
+                max_h=3.5)
 
     bullets_slide(prs, "What the separation check assumes", [
-        "The stress measure is textbook mechanics — the same glue-line check used for any built-up member.",
+        "The stress side is textbook mechanics — the same VQ/(I_x t) you already knew, evaluated one plane up.",
         "The strength side is not: tau_i is the bond strength along the printed layer lines, weaker than the bulk plastic, listed in no handbook.",
         "Pre-lab 1 starts it at the bulk guess sigma_y/sqrt(3) = 43.9 MPa and calibrates it from the data — it lands near 18 MPa, and it drifts with print session and support condition.",
         "The check predicts a capacity trend on one candidate plane. It is a dominant-mode proxy, not a fracture diagnosis.",
@@ -319,6 +327,7 @@ def build_lecture2():
     ])
 
     image_slide(prs, "A Gaussian is a belief about one beam", "figures/fig_gauss_strength.png",
+                caption="Exactly ME 239's \"fitting Normals to data\" (lecture 12) — mean, variance, st.norm — done on strength. Pre-lab 2's warm-up replays it on these four beams.",
                 source="Where does 3% come from? Four repeat prints at (1.3, 12.8) spanned 548.6-566.1 N; pooled over all repeats the scatter runs ~4.4% with session/printer structure. 3% is the stated class working value.")
     image_slide(prs, "Two beams at once: covariance", "figures/fig_mvn_correlation.png",
                 caption="Nearby designs share material, geometry, and physics, so their strengths move together.",
@@ -395,6 +404,7 @@ def build_lecture2():
 
     bullets_slide(prs, "Before next time: Pre-lab 2", [
         "In ME323_Module1_Prelab2_ML:",
+        ("warm up by rebuilding the GP from ME 239's Normal-fit in four small steps (fit one Normal, covariance, conditioning, many beams at once),", 1),
         ("compare vanilla GP setups and read posterior median, epistemic uncertainty, and total predictive uncertainty,", 1),
         ("write both MUI and EI,", 1),
         ("refit under 1% / 3% / 10% noise and note what moves,", 1),

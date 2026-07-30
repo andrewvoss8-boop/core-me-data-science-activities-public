@@ -245,6 +245,15 @@ def key_code(s):
     """Code included only in the executed staff KEY."""
     return ("key_code", s)
 
+
+def student_md(s):
+    """Markdown included only in the student notebook (KEY has its own variant)."""
+    return ("student_md", s)
+
+def student_code(s):
+    """Code included only in the student notebook (KEY has its own variant)."""
+    return ("student_code", s)
+
 # =========================== PRE-LAB 1 =============================================
 P1 = [
 md('''# Pre-lab 1: Failure Modes, Calibration, and the Equation Design
@@ -405,32 +414,76 @@ Pb_check = P_bend(section_props(2.0, 12.0), SY)
 assert 750 < Pb_check < 920, (
     f"P_bend(2,12) = {Pb_check:.6g} N is off. Convert L from mm to m.")
 print(f"P_bend(2,12) = {Pb_check:.1f} N   (checkpoint: about 835 N)")'''),
-md('''## 5. Shear failure: read the fracture notes first
+md(r'''## 5. Shear failure: start from the check you already know
 
-Look at the `failure_note` column. Every non-buckling "shear-type" failure in
-this dataset is a **separation of a flange from the web** — a fracture running
-*along* the beam at the printed flange-web interface, not a rupture through
-the web. That interface is a printed layer line, and the strength along the
-layer lines is weaker than through solid material.
+In three-point bending each half-span carries a shear force $V = P/2$.
+Mechanics of materials gives you two tools for it. The quick estimate — the
+web carries essentially all of the shear, roughly uniformly:
 
-The stress that plane carries is the classic built-up-beam **shear flow**: in
-either half-span the shear force is $V = P/2$, and the longitudinal shear
-transmitted across the flange-web junction is
+$$\tau_{avg}\approx\frac{V}{b\,H_{web}}.$$
 
-$$\\tau_j = \\frac{V\\,Q_f}{I_x\\,t_w}, \\qquad
-Q_f = B\\,t_f\\,\\frac{H_{web}+t_f}{2},$$
+And the real distribution, the transverse-shear formula:
 
-with $Q_f$ the first moment of the *flange alone* and $t_w = b$ the joint
-width (the glue-line check for any built-up member). Failure occurs when
-$\\tau_j$ reaches the **interface strength** $\\tau_i$:
+$$\tau(y)=\frac{V\,Q(y)}{I_x\,t(y)},$$
 
-$$P_{sep} = 2\\,\\tau_i\\,\\frac{I_x\\,t_w}{Q_f}.$$
+where the horizontal plane at height $y$ carries a shear stress set by
+$Q(y)$, the first moment (about the neutral axis) of all the area *beyond*
+that plane, and $t(y)$, the width of the section at that plane. For a
+rectangle this gives the familiar $\tau_{max}=\tfrac32 V/A$ at the neutral
+axis; for an I-section it says the web carries nearly everything, again
+peaking at the neutral axis.
 
-The stress measure is textbook mechanics. The strength is not: $\\tau_i$ is the
-strength along the printed layer lines, weaker than the bulk material, and no
-handbook lists it — calibrating it from test data is part of this pre-lab.
-Start from the bulk-material guess $\\tau_i = \\sigma_y/\\sqrt{3} = 43.9$ MPa and
-let the data argue.'''),
+The textbook shear check follows: evaluate $\tau$ at the neutral axis — the
+most-stressed plane — and compare it against the material's shear strength,
+$\tau_y=\sigma_y/\sqrt3\approx43.9$ MPa. Run that check before writing any
+new formula:'''),
+code('''def Q_NA(p):
+    """First moment about the NA of everything above it (flange + half web), m^3."""
+    return p["B"]*p["tf"]*(p["h"] + p["tf"])/2 + p["b"]*p["h"]**2/8
+
+tau_bulk = SY/np.sqrt(3)                      # bulk shear strength, von Mises
+p = section_props(2.0, 12.0)
+P_web_NA = 2*tau_bulk*p["Ix"]*p["b"]/Q_NA(p)  # P at which tau(NA) hits tau_bulk
+print(f"bulk shear strength sigma_y/sqrt(3) = {tau_bulk/1e6:.1f} MPa")
+print(f"familiar check at (b=2, H_web=12): the web reaches it at P = {P_web_NA:.0f} N,")
+print(f"but the flange already yields in bending at P = {P_bend(p, SY):.0f} N -- "
+      f"{P_web_NA/P_bend(p, SY):.1f}x earlier.")
+print("VERDICT: for a beam made of one material, shear never comes close to")
+print("governing here. If that were the whole story, this section would end.")'''),
+md(r'''### The beams disagree: same formula, different plane, different strength
+
+Now read the `failure_note` column. Every non-buckling "shear-type" failure
+in this dataset is a **flange separating from the web** — a fracture running
+*along* the beam at the printed flange-web junction. Not a web rupture at
+mid-depth, where the shear stress peaks. The familiar check missed this
+failure for two reasons, and neither one is the stress formula:
+
+1. **It checked the wrong plane.** $\tau=VQ/(I_x t)$ is not a
+   neutral-axis-only formula — it prices the longitudinal shear on *any*
+   horizontal plane; textbooks evaluate it at the neutral axis only because
+   that is where $\tau$ peaks in a beam made of one material. Slide the
+   plane up to the flange-web junction: the area beyond the plane is the
+   flange alone, so $Q\to Q_f=B\,t_f\,(H_{web}+t_f)/2$, and the width
+   carrying the stress is the joint, $t\to t_w=b$. This is exactly the
+   glue-line (shear-flow) check for built-up members — nailed or glued
+   wooden beams — and the printed junction of this I-beam *is* a glue line.
+2. **It compared against the wrong strength.** The junction plane is a
+   printed layer-line bond, not bulk plastic. Its strength $\tau_i$ is
+   weaker than $\sigma_y/\sqrt3$, and no handbook lists it — calibrating it
+   from the test data is part of this pre-lab.
+
+Setting $\tau_j=VQ_f/(I_x t_w)$ equal to the interface strength $\tau_i$,
+with $V=P/2$:
+
+$$P_{sep}=2\,\tau_i\,\frac{I_x\,t_w}{Q_f}.$$
+
+One number worth holding: at `(b=2, H_web=12)` the junction plane carries
+about **14% less** shear stress than the neutral axis
+($Q_f/Q_{NA}\approx0.86$). The junction is *not* where the stress is
+maximum — it is where the material is weakest. Failure lives at the worst
+stress-to-strength *ratio*, not at the highest stress. Start $\tau_i$ at the
+bulk guess $\sigma_y/\sqrt3=43.9$ MPa — "the bond is as strong as the
+plastic" — and let the data argue.'''),
 code('''def Q_flange(p):
     return p["B"]*p["tf"]*(p["h"]/2 + p["tf"]/2)     # flange first moment, m^3
 
@@ -445,7 +498,9 @@ assert 2600 < Psep_check < 3200, (
 print(f"junction separation limit = {Psep_check:.1f} N   (checkpoint: about 2894 N)")
 print("At the bulk-yield guess the junction check never governs -- hold that")
 print("thought until the calibration step meets the separation notes.")'''),
-md('''## 6. Lateral-torsional buckling
+md(r'''## 6. Lateral-torsional buckling
+
+<img src="https://raw.githubusercontent.com/andrewvoss8-boop/core-me-data-science-activities-public/main/me323/Module1_drafts/figures/ltb%20graphic.jpg" alt="Lateral-torsional buckling" width="520">
 
 LTB is provided because it carries the most assumptions: elastic warping,
 top-flange loading, idealized supports, initial straightness, and an effective
@@ -614,19 +669,49 @@ def diagnostic_plots(sy, k, tau_i, label):
 diag_nominal, mape_nom = diagnostic_plots(SY, K_LTB, TAU_I, "Nominal handbook parameters")
 df["cap_nominal"] = diag_nominal.predicted_N
 print(f"CHECKPOINT: nominal error should be about «MAPE_NOM»% MAPE.")'''),
-md('''## 8. Tune by hand before optimizing
+md(r'''## 8. Tune by hand before optimizing
 
 Change the three values and rerun this cell. Try to improve the parity plot,
 but watch which failure notes and predicted modes each change helps or hurts.
 
-- `TRY_SY_MPA` moves the flexural-yield side.
-- `TRY_K` mostly moves the LTB-limited beams.
-- `TRY_TAU_MPA` moves only the separation limit -- watch beams 12 and 14, the
-  two whose notes say a flange separated from the web (beam 7 shows a partial,
-  secondary separation after its central fracture).'''),
-code('''TRY_SY_MPA = 76.0    # edit
-TRY_K = 0.33         # edit
-TRY_TAU_MPA = 43.9   # edit -- the printed-interface strength guess
+You are not guessing blind: each knob has a physical meaning, so each has a
+defensible range — and the data brackets two of them before any optimizer
+runs.
+
+- **`TRY_SY_MPA` — printed-PLA flexural yield. Try 55–90 MPa.** Filament
+  datasheets typically put bulk PLA near 50–60 MPa in tension and higher in
+  bending; printed parts land at or below bulk. At the nominal 76 MPa every
+  beam sits below the parity line — the mostly-bending beams (1, 2, 5, 6, 8,
+  10) are over-predicted by 4–17% — so expect to pull this knob *down*, not
+  up.
+- **`TRY_K` — fixture effective-length factor; moves only the LTB-limited
+  beams (watch beam 9). Try 0.2–1.0.** Anchors: $k=1.0$ is the textbook
+  simply-supported "fork" end, free to warp — the least-restraint ceiling.
+  Clamping both ends pulls it down toward 0.5 (the same effective-length
+  logic as columns), and the load head bracing the top flange pushes lower
+  still. Below about 0.2 you are claiming more restraint than full clamping
+  plus midspan bracing can deliver. Because $M_{cr}\propto1/k^2$, small
+  moves swing that branch hard.
+- **`TRY_TAU_MPA` — printed-interface shear strength; moves only the
+  separation limit (watch beams 12 and 14; beam 7's separation is partial
+  and secondary). Try 10–44 MPa.** The bulk guess 43.9 MPa
+  ($=\sigma_y/\sqrt3$) is a *ceiling*: a layer-line bond cannot beat solid
+  plastic. And you can bound it from below with no optimizer at all — set
+  $P_{sep}$ equal to a separation beam's measured strength and solve for
+  $\tau_i$: beam 14 gives ≈16 MPa, beam 12 gives ≈21 MPa. Expect the fit to
+  land in the teens. Note the three worst nominal misses (beams 12, 14, 15
+  at +36%, +40%, +61%) are exactly the separation-note beams: the model
+  cannot even *see* that mode until this knob drops below the bend/LTB
+  surfaces.
+
+A hand-tune inside these ranges should reach roughly 6–10% MAPE (from 21%
+nominal); the optimizer in section 9 gets to about 5%. If a knob only helps
+beams whose notes disagree with the mode it controls, you are compensating
+for missing physics, not correcting a number — memo question 3 returns to
+that distinction.'''),
+code('''TRY_SY_MPA = 76.0    # edit -- try 55-90  (datasheet PLA; printed parts at/below bulk)
+TRY_K = 0.33         # edit -- try 0.2-1.0 (1.0 = free fork ends; 0.5 ~ clamped ends)
+TRY_TAU_MPA = 43.9   # edit -- try 10-44  (44 = bulk ceiling; beams 12/14 imply teens)
 
 diag_try, mape_try = diagnostic_plots(
     TRY_SY_MPA*1e6, TRY_K, TRY_TAU_MPA*1e6, "Your trial parameters")'''),
@@ -795,7 +880,9 @@ physically printed and broken is the one your group designs in Submission 1.
 
 This notebook uses only data-driven, vanilla GPs. You will compare reasonable
 setup choices, separate epistemic uncertainty from observation noise, use MUI
-and EI, and then apply one locked recipe so the class submits one common beam.'''),
+and EI, and then apply one locked recipe so the class submits one common beam.
+Section 0 first rebuilds the GP in four small steps from the Normal-fitting
+you did in ME 239 — if "Gaussian process" feels new, that is the on-ramp.'''),
 code(SRC_CONST + SRC_LOAD + f'''
 eq_beam = pd.DataFrame([dict(beam_id=16, b={EQ_B:.2f}, H={EQ_H}, strength_N={EQ_N},
                              weight_g=np.nan,
@@ -811,7 +898,174 @@ pd.set_option("display.max_colwidth", None)
 print("\\nObserved failure notes carried into the GP decision:")
 print(df.loc[df.beam_id <= 15, ["beam_id", "b", "H", "failure_note"]]
       .to_string(index=False))'''),
+md(r'''## 0. Warm-up: you have already trained this model
+
+Before any GP code, four small steps. Each is one move past the last, and
+the first one you did in ME 239. If *mean*, *covariance*, and *conditioning*
+feel comfortable, this section is ten minutes of review; if they don't, it is
+the on-ramp. These are the same stepping stones as Lecture 2, now with the
+numbers in your hands.
+
+**Step 1: fit a Normal — the ME 239 move.** In
+[Fitting Normal distributions to data](https://purduemechanicalengineering.github.io/me-239-intro-to-data-science/lecture12/example-fitting-normals.html)
+(ME 239, lecture 12) you took a column of thermostat readings, computed a
+mean and a variance, and called `st.norm(loc=mu, scale=sigma)` a *trained
+model*. That is all "training" means, there and here: pick the parameters
+that make the data plausible as samples from the model. Training a Gaussian
+process is that same sentence — the only thing that grows is how many
+Gaussians are trained at once.
+
+Do the 239 move once more, on beams. Staff printed **the same design four
+times** — `(b=1.3, H_web=12.8)`, same fixture, same support condition,
+different print sessions — and broke all four.'''),
+code('''import scipy.stats as st
+
+# Four repeat prints of ONE design, (b=1.3, H_web=12.8): same fixture, same
+# support condition, different print sessions (staff campaign data).
+repeats_N = np.array([548.6, 553.0, 565.2, 566.1])
+
+mu_1 = ____       # >>> FILL IN: the sample mean (same first move as ME 239)
+sigma2_1 = ____   # >>> FILL IN: np.mean(repeats_N**2) - mu_1**2  (method of moments)
+sigma_1 = np.sqrt(sigma2_1)
+strength_one_design = st.norm(loc=mu_1, scale=sigma_1)
+
+xs = np.linspace(mu_1 - 5*sigma_1, mu_1 + 5*sigma_1, 300)
+plt.figure(figsize=(6.5, 3))
+plt.plot(xs, strength_one_design.pdf(xs), label="Normal fit")
+plt.plot(repeats_N, np.zeros_like(repeats_N), "k|", ms=20, label="4 repeat tests")
+plt.xlabel("strength [N]"); plt.ylabel("density")
+plt.title("Belief about ONE design, trained on 4 repeats"); plt.legend()
+plt.show()
+
+print(f"mu = {mu_1:.1f} N, sigma = {sigma_1:.1f} N  ({100*sigma_1/mu_1:.1f}% relative)")
+print("CHECKPOINT: mu = 558.2 N, sigma = 7.6 N -- about 1.4% scatter.")
+print("(pandas .std() divides by N-1 and says 8.8 N: with four points, even the")
+print(" estimator is an assumption. And this is one geometry on one support")
+print(" setup -- pooled over every repeated geometry the campaign scatter runs")
+print(" ~4.4%, with session structure inside it. The class works with 3%;")
+print(" section 4 stress-tests that choice.)")'''),
+md(r'''That Normal answers questions about one design — what is the chance a fifth
+print beats 570 N? — but says nothing about any *other* design. The module's
+question is the reverse: having tested a handful of designs, what should we
+believe about the ones we never tested?
+
+**Step 2: two beams at once.** Nearby designs share material, geometry, and
+physics, so their strengths move together — in ME 239 language, they are
+**correlated**, and a *joint* (multivariate) Gaussian with a covariance
+matrix writes that down. Where does the correlation number come from? A
+**kernel**: a function that turns *distance between designs* into
+*correlation between strengths*. The classic squared-exponential choice has
+one dial, the length scale $\ell$:
+
+$$\rho(d)=\exp\!\left(-\frac{d^2}{2\ell^2}\right).$$
+
+**Step 3: conditioning.** Measure one beam and the joint Gaussian updates
+the others. For two designs with equal prior standard deviations, the ME 239
+conditioning algebra reads
+
+$$\mu_{B\mid A}=\mu_B+\rho\,(a-\mu_A),\qquad
+\sigma_{B\mid A}=\sigma_B\sqrt{1-\rho^2}.$$
+
+This is Bayes' one line — posterior ∝ likelihood × prior — in the one family
+where the update comes out in closed form. Run it: beam A is the design we
+just fit, measured at 558 N. Beam B is an untested neighbor 0.8 mm away in
+`H_web`; beam C is an untested design 5 mm away. (The prior below is
+illustrative — a round-number belief before testing, wide because nothing is
+tested yet. The measurement is treated as exact for now; observation noise
+joins in section 4.)'''),
+code('''ell = 2.5                                # length scale, mm -- chosen by hand for now
+def corr(d_mm):                          # kernel: distance in, correlation out
+    return np.exp(-d_mm**2 / (2*ell**2))
+
+mu_prior, sd_prior = 550.0, 50.0         # illustrative prior belief for B and C
+a_measured = 558.2                       # beam A's measured strength [N]
+
+print(f"prior belief about each untested design: N({mu_prior:.0f}, {sd_prior:.0f}^2)\\n")
+for name, d in [("B, 0.8 mm away", 0.8), ("C, 5.0 mm away", 5.0)]:
+    rho = corr(d)
+    mu_post = mu_prior + rho*(a_measured - mu_prior)
+    sd_post = sd_prior*np.sqrt(1 - rho**2)
+    print(f"beam {name}: rho = {rho:.2f}  ->  N({mu_post:.1f}, {sd_post:.1f}^2)")
+
+print("\\nMeasuring A nearly settles its neighbor (sigma 50 -> 16 N) and says")
+print("almost nothing 5 mm away (sigma 50 -> 49.5 N). The kernel decides how")
+print("far one test's information reaches.")'''),
+md(r'''**Step 4 — the only new leap: many beams at once.** Two designs needed a
+2×2 covariance matrix. Nothing stops us at two: put a joint Gaussian on
+*every* candidate design at once, let the kernel fill in the whole covariance
+matrix, and condition on all the tested beams simultaneously. Predictions at
+a fine grid of designs, connected, *are* a function — with an uncertainty
+band. That object is a **Gaussian process**. It is not a new kind of model;
+it is the ME 239 Gaussian grown long, with a kernel writing the covariances.
+
+The cell below builds one with plain `numpy` — the identical conditioning
+move as step 3, run at 200 candidate designs at once. To stay 1D it uses the
+**thin-web family** (the five beams with `b ≤ 1.8`, including the equation
+query) and pretends for a moment that only `H_web` matters. Two other
+switches from step 3, both stated honestly: the target is now the design
+objective, strength-to-weight, rather than raw newtons; and the three model
+numbers at the top — length scale, prior sd, noise sd — are still chosen by
+hand.'''),
+code('''train = df[df.b <= 1.8]                      # thin-web family, incl. the eq query
+Ht, yt = train.H.values, train.str_to_weight.values
+m0 = yt.mean()                               # prior mean: a constant
+
+ell, sf, sn = 2.5, 4.0, 1.0    # length scale [mm]; prior sd and noise sd [N/g]
+def kernel_matrix(H1, H2):
+    return sf**2 * np.exp(-(H1[:, None] - H2[None, :])**2 / (2*ell**2))
+
+H_grid = np.linspace(5.0, 16.0, 200)
+K = kernel_matrix(Ht, Ht) + sn**2*np.eye(len(Ht))   # tested-vs-tested covariance
+Ks = kernel_matrix(Ht, H_grid)                      # tested-vs-grid covariance
+w = np.linalg.solve(K, Ks)
+mu_post = m0 + w.T @ (yt - m0)                      # the same move as step 3
+sd_post = np.sqrt(np.maximum(sf**2 - np.einsum("ij,ij->j", Ks, w), 0.0))
+
+plt.figure(figsize=(7.5, 3.8))
+plt.fill_between(H_grid, mu_post - 2*sd_post, mu_post + 2*sd_post, alpha=0.25,
+                 label="±2 sigma")
+plt.plot(H_grid, mu_post, label="posterior mean")
+plt.scatter(Ht, yt, c="black", zorder=3, label="tested thin-web beams")
+plt.xlabel("H_web [mm]"); plt.ylabel("str/w [N/g]")
+plt.title("A Gaussian process by hand: ME 239 conditioning, 200 designs at once")
+plt.legend(fontsize=8); plt.show()
+
+i = np.argmin(abs(H_grid - 8.0)); j = np.argmin(abs(H_grid - 13.4))
+print(f"H_web= 8.0 (no tests nearby): mu={mu_post[i]:.1f} N/g, sigma={sd_post[i]:.2f}")
+print(f"H_web=13.4 (tests nearby):    mu={mu_post[j]:.1f} N/g, sigma={sd_post[j]:.2f}")
+print("The band collapses where beams land and stays wide where nothing was")
+print("tested. No failure equation was used -- and no equation gave us a band.")'''),
+md(r'''That short cell *is* a Gaussian process regression. Everything
+`GaussianProcessRegressor` adds below is bookkeeping and tuning on top of the
+same conditioning algebra:
+
+- **It tunes the kernel numbers.** We set the length scale, prior sd, and
+  noise by hand; sklearn picks the length scale and prior sd by maximizing
+  the data's likelihood (`n_restarts_optimizer` restarts that search). The
+  noise `alpha` stays *your* assumption — section 4 is about exactly that.
+- **Two inputs instead of one.** The kernel distance runs over `(b, H_web)`
+  with one length scale per input (that is all "ARD" means), so the
+  pretend-1D shortcut is no longer needed.
+- **Log target.** The class model fits log(str/w), so its bands read as
+  relative (%) errors and its predictions can never cross zero.
+- **Standardized inputs.** `b` spans 6 mm and `H_web` spans 11 mm; rescaling
+  both to comparable units means one length-scale search does not have to
+  undo that imbalance first (fitted scales convert back to mm).
+
+Hold on to two cautions from the warm-up. First, every band above is
+*conditional on the kernel we chose* — a different length scale redraws it,
+which is why section 2 compares setups instead of trusting one. Second, the
+noise and the band do different jobs: the ~1.4% scatter from step 1 is
+**aleatory** (another print re-rolls it), while the band is **epistemic**
+(another test shrinks it). Section 4 works that split.'''),
 md('''## 1. What choices define a vanilla GP?
+
+*Vanilla* here is a contrast term, not a criticism: this GP learns from the
+tested beams alone. Its counterpart is a **physics-informed GP**, which also
+gets the Pre-lab 1 failure equations -- as extra input features, or as a
+physics baseline whose residual the GP learns. Those versions become lane
+options in Submission 1; this pre-lab first establishes what the data-only
+model can and cannot do.
 
 A surrogate maps `(b, H_web)` to a performance prediction without using the
 failure equations. For a raw target, the GP mean is the central prediction.
@@ -1270,7 +1524,7 @@ build a model your way, and commit to a third design, the beam your group will
 actually print and break. Do not call either common query beam your
 Submission 1 design unless you deliberately choose those coordinates. The
 final answer is a decision defended in the memo.'''),
-md('''## Your knobs
+md(r'''## Your knobs
 
 This notebook hands you a working pipeline, but every modeling decision in it
 is a variable you set: an assumption that goes into the model, not a setting
@@ -1284,6 +1538,11 @@ with a known right answer. The full dashboard:
 | assumed noise | `NOISE_PCT` (section 3) | any percent; class default 3, pooled campaign repeats ≈ 4.4 (Pre-lab 2 section 4) | how much of beam-to-beam scatter is repeatability rather than real shape — section 3 |
 | acquisition rule | `ACQ` (section 4) | `"MUI"` / `"EI"` | how predicted value and uncertainty combine into one pick — section 4 |
 | explore vs exploit | `psi` (section 4, MUI only) | 0 = pure exploit; larger = more explore | how much a *chance* at a better beam is worth against a safe, good one — section 4 |
+
+This table is a map, not the explanation. Each knob gets a full walkthrough a
+few cells below, in the section its last column names -- the lanes especially:
+section 2 defines all four and scores them against each other, so do not
+commit to `CHOICE` from the one-line summary here.
 
 Two kinds of knobs, two ways to choose. Architecture and kernel make claims
 the data can score, and the leave-one-out table in section 2 is their referee. Noise
@@ -1308,7 +1567,19 @@ every defensible model points at this neighborhood, so we chose a printable
 point inside the stable region" is a stronger engineering conclusion than any
 single recipe. And if your pick does *not* survive — say so: an unstable
 recommendation is exactly when buying information beats chasing the current
-maximum, and a memo that argues that earns its credit.'''),
+maximum, and a memo that argues that earns its credit.
+
+**State every knob behind your choice.** Card row 4 asks for the full knob
+set your pick actually used — lane, kernel, noise, acquisition rule, and
+dial. Every quantity this pipeline prints (fitted length scales, posterior
+medians, sigmas, argmax coordinates) is a property of that one combination,
+not of "the model": change one knob and refit, and an effect you found
+under the old settings may not hold — a length scale fitted under RBF at 3%
+noise is not the Matérn length scale, and lane A's fitted scales say
+nothing about lane D's. Graders read every number on your card and memo as
+coming from your stated knobs; if one comes from a different setting, say
+which, and give your reason for why it still belongs in the argument.
+'''),
 code(SRC_CONST + SRC_LOAD + f'''
 new = pd.DataFrame([
     dict(beam_id=16, b={EQ_B:.2f}, H={EQ_H}, strength_N={EQ_N},
@@ -1784,7 +2055,7 @@ key_md('''## KEY: memo targets
 
 # =========================== SUBMISSION 2 ==========================================
 S2 = [
-md('''# Submission 2: Reflection and the Lightweight Challenge
+student_md(r'''# Submission 2: Reflection and the Lightweight Challenge
 ### ME 323 Module 1
 
 <img src="https://raw.githubusercontent.com/andrewvoss8-boop/core-me-data-science-activities-public/main/me323/Module1_drafts/figures/I_beam_dimensions.jpg" alt="I-beam dimensions" width="220">
@@ -1794,8 +2065,37 @@ Your beam has been printed and tested. Four jobs here:
 1. Recall the module's ideas from memory.
 2. Reflect on your measured result against your recorded prediction.
 3. Design the lightest beam that confidently clears 700 N.
-4. Refit the model with your own result and see what it changes.'''),
-md('''## 0. Recall
+4. Refit the model with your own result and see what it changes.
+
+This notebook is thin on purpose. Submission 1 already contains every tool
+the lightweight challenge needs — the data, the calibrated physics, the GP
+toolkit, and your own knob settings. Bring that code over and put it to work
+on a new objective. What is graded here is not the pipeline (you have one);
+it is the argument your group builds with it.'''),
+key_md(r'''# Submission 2: Reflection and the Lightweight Challenge: SOLUTION KEY
+### ME 323 Module 1 (staff only)
+
+<img src="https://raw.githubusercontent.com/andrewvoss8-boop/core-me-data-science-activities-public/main/me323/Module1_drafts/figures/I_beam_dimensions.jpg" alt="I-beam dimensions" width="220">
+
+**The student notebook is now open-ended.** It hands out no lightweight
+pipeline, no fill-in lines, and no checkpoint: students copy their own
+Submission 1 code, choose their own confidence rule (lane, kernel, noise,
+`z`, or a defended replacement), and argue for a design. This KEY therefore
+does two jobs:
+
+1. **Reference solution** — the class-default recipe worked end to end, so a
+   grader knows what the default path produces (sections 1–3 below).
+2. **Audit tools** — a sweep that maps where *defensible* designs land across
+   every knob combination, and a `check_design` helper that reproduces any
+   group's claimed numbers under their own stated knobs (section 2b).
+
+**Suggested grading pass per group:** run their notebook top to bottom (no
+checkpoints means every memo number must reproduce from their code — this is
+the rubric's pass/fail code check); pull their stated knobs and final design
+from the required end-of-section-2 printout; audit with `check_design`; place
+them against the sweep table; then grade the memo prompts against the targets
+at the bottom of this KEY.'''),
+md(r'''## 0. Recall
 
 Write before computing. Corrections earn credit; unsupported bluffing does not.
 
@@ -1809,7 +2109,36 @@ Write before computing. Corrections earn credit; unsupported bluffing does not.
 4. The equation query returned below its prediction; the GP query returned
    above its central prediction. Give one plausible reason for each miss.
 5. Name the four modeling lanes from Submission 1 and the one-line idea of each.'''),
-md("""## 1. Your beam's test result
+key_md(r'''### KEY: recall targets
+
+Individually graded (7% of the module). Credit any defensible variant in the
+student's own words; the targets are:
+
+1. Bending (`P_bend`), flange-web separation (`P_sep`), lateral-torsional
+   buckling (`P_LTB`); capacity is their minimum and the proxy label is the
+   argmin — a modeled proxy, not an observed mechanism. Under the calibrated
+   parameters, separation owns the thin-web edge (b ≲ 2 mm) at low-to-mid web
+   heights, LTB takes over that same thin-web edge once the web is tall (thin
+   flanges, roughly H_web ≳ 13 mm), and bending owns the broad remainder of
+   the box.
+2. σ_y (76 → 66.8 MPa) corrects a handbook number for printed material; k is
+   a property of *this fixture* no handbook lists; τ_i started as a bulk-yield
+   guess but the fitted 16.8 MPa measures a printed-interface property no
+   handbook lists. Full credit requires taking a position, not just reciting
+   the numbers.
+3. Epistemic = model ignorance, shrinks with data, drives explore-vs-exploit;
+   aleatory = repeatability scatter, irreducible by more of the same tests;
+   total = both combined, and only total belongs in a one-future-beam bound.
+4. Equation beam (23% low): any named model-form candidate — mode-competition
+   handoff mis-modeled near the aggressive design, calibration transferred
+   from other geometries, print-to-print variability. GP beam (≈ on
+   prediction): it interpolated near tested designs, so a near-zero miss is
+   what an honest interpolation should produce — and says little about the
+   model far from data.
+5. A plain (pattern-match log str/w), B strength (learn raw newtons, divide
+   by mass after), C features (physics predictions as extra inputs),
+   D residual (physics first, GP corrects its log error).'''),
+student_md(r'''## 1. Your beam's test result
 
 **Two things before you type numbers in.** First, the peak load you enter is
 one your group reduced yourselves from your beam's raw force–displacement
@@ -1819,12 +2148,93 @@ or a terminal loss of the load path, and compare that shape with the specimen
 and fixture observations before interpreting the peak.
 Second, put your preregistration table (filed with Submission 1) next to the
 result *before* reading further: the reflection below is graded against what
-your group predicted on record, not against what is easy to explain now."""),
-code(SRC_CONST + SRC_LOAD + f'''
+your group predicted on record, not against what is easy to explain now.
+
+**Setup: reuse, don't rewrite.** Copy your Submission 1 setup cell into the
+cell below — imports, the fixed-geometry constants, the data load,
+`estimated_mass_g`, and the two class beams. It should end with 17 beams in
+`df`. Then enter your beam and write the interval check yourself: your
+preregistered central prediction and epistemic sigma came from Submission 1,
+the aleatory floor is the class default 3% in log space, and the two are
+independent —
+
+$$\sigma_{total}=\sqrt{\sigma_{epi}^2+0.03^2},\qquad
+[\,\hat{y}\,e^{-2\sigma_{total}},\ \hat{y}\,e^{+2\sigma_{total}}\,].$$'''),
+key_md(r'''## 1. Your beam's test result
+
+Students now paste their own Submission 1 setup and **write the interval
+check themselves**; the cell below is the reference implementation of what
+their code must do. Grade the logic, not the text: estimated vs measured mass
+reported and separated, str/w on both denominators labeled,
+σ_total = √(σ_epi² + 0.03²) around the *preregistered* central prediction,
+and an explicit inside/outside verdict.
+
+**Grader checks for section 1:**
+- The interval uses the **model-basis** ratio (estimated-mass denominator)
+  and the prediction actually filed with Submission 1 — not one recomputed
+  after the result was known. Cross-check against the group's
+  preregistration table.
+- The trace-shape characterization (immediate / delayed / progressive /
+  terminal loss) is evidence, not a mechanism label, and should be compared
+  with the preregistered morphology.
+- An outside-interval result must not be assigned a single cause; the memo
+  target for prompt 1 below applies.'''),
+student_code('''# Paste your Submission 1 setup cell here (imports, constants, data load,
+# estimated_mass_g, the two class beams). It should print "17 beams".'''),
+student_code('''# >>> ENTER your group's final design and its measured result:
+b_mine, H_mine = None, None        # your Submission 1 design (mm)
+P_mine = None                      # measured failure load (N)
+mass_measured_mine = None          # measured printed-beam mass (g)
+note_mine = ""                     # what the failure looked like
+pred_median_sw = None              # copy model central prediction from Submission 1 (N/g)
+pred_sigma_log = None              # copy epistemic sigma_log from Submission 1
+
+# YOUR CODE: compute and print
+#   - estimated mass at (b_mine, H_mine) and its gap to the measured mass
+#   - str/w on both denominators, labeled
+#   - the +/-2 sigma_total posterior-predictive interval around pred_median_sw
+#   - whether the model-basis ratio landed inside it'''),
+key_code('''import numpy as np, pandas as pd, matplotlib.pyplot as plt
+import warnings; warnings.filterwarnings("ignore")
+plt.rcParams["figure.dpi"] = 120
+
+# Fixed geometry (you choose b and H_web; everything else is set)
+B, TH, L = 10.0, 18.0, 150.0     # flange width, total height, test span (mm)
+LP = 172.0                        # printed length (mm); overhangs the 150 mm span
+KMASS = 0.2045                    # g/mm^2: mass per unit cross-section area at 172 mm
+
+# Handbook starting values — Pre-lab 1 calibrates the three marked ones
+SY = 76e6                         # Pa, PLA strength                 (calibrated)
+K_LTB = 0.33                      # fixture effective-length factor  (calibrated)
+TAU_I = 43.9e6                    # printed-interface shear strength (Pa) — starting
+                                  # guess = bulk yield / sqrt(3)     (calibrated)
+E, G = 2.5e9, 2.5e9 / 2.6         # Young's / shear modulus (Pa) — fixed
+C1, C2 = 1.35, 0.55               # LTB moment-gradient / load-height factors
+URL = ("https://raw.githubusercontent.com/andrewvoss8-boop/"
+       "core-me-data-science-activities-public/main/data/student_beams_B10_L150.csv")
+try:
+    df = pd.read_csv(URL); print("loaded from GitHub")
+except Exception:
+    try:
+        df = pd.read_csv("student_beams_B10_L150.csv"); print("loaded local copy")
+    except FileNotFoundError as e:
+        raise FileNotFoundError(
+            "no internet and no local copy -- download student_beams_B10_L150.csv "
+            "from the course page into this notebook's folder and rerun") from e
+df = df.rename(columns={"b_mm": "b", "H_web_mm": "H"})
+
+def estimated_mass_g(b, H):
+    A = b * H + B * (TH - H)      # cross-section area, mm^2
+    return KMASS * A              # grams
+df["mass_est_g"] = estimated_mass_g(df.b, df.H)
+df["mass_delta_g"] = df.weight_g - df.mass_est_g
+df["mass_delta_pct"] = 100*df.mass_delta_g/df.mass_est_g
+print(len(df), "tested beams")
+
 new = pd.DataFrame([
-    dict(beam_id=16, b={EQ_B:.2f}, H={EQ_H}, strength_N={EQ_N},
+    dict(beam_id=16, b=1.10, H=13.25, strength_N=475.7,
          failure_note="equation-query result; observed morphology not supplied"),
-    dict(beam_id=17, b={GP_B:.2f}, H={GP_H}, strength_N={GP_N},
+    dict(beam_id=17, b=1.00, H=13.39, strength_N=445.8,
          failure_note="locked-GP-query result; observed morphology not supplied"),
 ])
 new["weight_g"] = np.nan
@@ -1832,7 +2242,8 @@ new["mass_est_g"] = estimated_mass_g(new.b, new.H)
 df = pd.concat([df, new], ignore_index=True)
 df["str_to_weight"] = df.strength_N / df.mass_est_g
 
-# >>> ENTER your group's final design and its measured result:
+# KEY reference implementation of the section-1 interval check students now
+# write themselves. Grade their code against this logic, not this exact text.
 b_mine, H_mine = None, None        # your Submission 1 design (mm)
 P_mine = None                      # measured failure load (N)
 mass_measured_mine = None          # measured printed-beam mass (g)
@@ -1848,41 +2259,61 @@ if None not in (b_mine, H_mine, P_mine, mass_measured_mine,
     pred_lo_sw = pred_median_sw*np.exp(-2*sigma_total_log)
     pred_hi_sw = pred_median_sw*np.exp(2*sigma_total_log)
     inside_2sigma = pred_lo_sw <= sw_mine_model_basis <= pred_hi_sw
-    print(f"your beam: ({{b_mine}}, {{H_mine}}), {{P_mine}} N")
+    print(f"your beam: ({b_mine}, {H_mine}), {P_mine} N")
     print("  observed failure note:", note_mine)
-    print(f"  measured mass={{mass_measured_mine:.2f}} g; "
-          f"estimated mass={{mass_est_mine:.2f}} g; "
-          f"difference={{mass_measured_mine-mass_est_mine:+.2f}} g")
-    print(f"  measured-mass str/w={{sw_mine_measured_mass:.1f}} N/g; "
-          f"model-basis str/w={{sw_mine_model_basis:.1f}} N/g")
-    print(f"  sigma_epi={{pred_sigma_log:.3f}}, sigma_total={{sigma_total_log:.3f}}")
-    print(f"posterior-predictive interval: [{{pred_lo_sw:.1f}}, {{pred_hi_sw:.1f}}] N/g")
+    print(f"  measured mass={mass_measured_mine:.2f} g; "
+          f"estimated mass={mass_est_mine:.2f} g; "
+          f"difference={mass_measured_mine-mass_est_mine:+.2f} g")
+    print(f"  measured-mass str/w={sw_mine_measured_mass:.1f} N/g; "
+          f"model-basis str/w={sw_mine_model_basis:.1f} N/g")
+    print(f"  sigma_epi={pred_sigma_log:.3f}, sigma_total={sigma_total_log:.3f}")
+    print(f"posterior-predictive interval: [{pred_lo_sw:.1f}, {pred_hi_sw:.1f}] N/g")
     print("inside recorded model +/-2 sigma interval:", inside_2sigma)
-    print(f"class scoreboard: best tested so far {{df.str_to_weight.max():.1f}} N/g")'''),
-md('''The model was trained on strength divided by estimated mass, so **the
+    print(f"class scoreboard: best tested so far {df.str_to_weight.max():.1f} N/g")'''),
+md(r'''The model was trained on strength divided by estimated mass, so **the
 interval check uses that same denominator**. Report the measured-mass ratio
 too, but **never compare ratios with different denominators** as if they were
 the same quantity. If the result lies outside the interval, distinguish
 model-form error, print-to-print variability, and an unmodeled failure
 mechanism. One test does not identify which.'''),
-md('''## 2. The lightweight challenge: hold 700 N, weigh as little as possible
+student_md(r'''## 2. The lightweight challenge: hold 700 N, weigh as little as possible
 
 Same 17 beams, same tools — different objective. Now strength is a
-**constraint**, not the prize. The class-default confidence rule: require the
-model's lower posterior-predictive quantile for one future beam to clear the
-target. Epistemic uncertainty and 3% aleatory observation scatter are
-independent in log space:
+**constraint**, not the prize: among designs you are confident will hold
+700 N, find the lightest (estimated-mass basis, so everyone's masses are
+comparable).
 
-$$\\sigma_{total}=\\sqrt{\\sigma_{epi}^2+0.03^2},\\qquad
-P_{lo}(b,H)=e^{\\mu_{\\ln P}(b,H)-2\\sigma_{total}(b,H)}
-\\ge 700\\text{ N}.$$
+**No template this time, and no checkpoint.** Bring over whatever you need
+from Submission 1 — the calibrated-physics cell (`section_props` through
+`gov_mode`) and the GP toolkit (`make_kernel` through `fit_lane`) cover it —
+and build the analysis your argument requires. Different groups should land
+on different designs; the memo carries the case, not a matching number.
 
-Among designs that pass, take the lightest. **FILL IN** the two marked lines.
-You may argue a different z than 2 in your memo — that is a risk posture, not
-a math fact. Padding is judged the same way: extra grams beyond the z = 2
-design are fine when the memo says what they buy (a larger z, a named
-model-form worry) and cost credit when the only defense is a bare safety
-factor.
+**What "confident" means is the design decision.** The class-default rule is
+a starting point, not a requirement: fit your model, form the total predictive
+sigma for one future beam,
+
+$$\sigma_{total}=\sqrt{\sigma_{epi}^2+0.03^2},$$
+
+and require the lower predictive strength
+$e^{\,\mu_{\ln P}-z\,\sigma_{total}}$ to clear 700 N, with `z = 2` as the
+default posture. Every piece of that rule is yours to keep, change, or
+replace, if you can defend the alternative: the lane and kernel, the assumed
+noise, the value of `z`, whether the physics model gets a veto, even whether
+a lower quantile is the right notion of "confident" at all. A defended
+default beats an arbitrary exotic choice — in both directions.
+
+Whatever route you take, your code must end by printing, for your final
+design: **(b, H_web), estimated mass, the model's central strength
+prediction, and the lower bound your rule actually enforced** — the memo
+argues from those numbers. Two cautions worth pricing before you commit:
+
+- A beam whose own stated lower bound sits under 700 N is not a bold design;
+  it is a design expected to fail its spec.
+- Padding is judged the same way as gambling: grams beyond your lightest
+  confident design are fine when the memo says what they buy (a larger `z`, a
+  named model-form worry) and cost credit when the only defense is a bare
+  safety factor.
 
 **Why 700 N?** An instructional spec, not a customer requirement: the target
 was chosen so the feasibility boundary crosses the middle of the tested
@@ -1890,14 +2321,67 @@ design space — handout strengths run 314 to 949 N, so some tested beams clear
 it and some do not, and the lower-bound constraint genuinely binds. Treat it
 the way practicing engineers treat a spec they did not set: as fixed, with
 your reasoning graded against it.'''),
-code(SRC_PHYS_FULL + f'''
-SY_CAL, K_CAL, TAU_CAL = {CAL_SY:.3e}, {CAL_K}, {CAL_TAU:.3e}
+key_md(r'''## 2. The lightweight challenge — reference solution (class-default rule)
+
+The student side states the class-default rule
+($P_{lo} = e^{\mu_{\ln P} - z\,\sigma_{total}} \ge 700$ N with z = 2,
+lane A, RBF, 3% noise) as a *starting point* and opens every piece of it to a
+defended alternative. This cell is the default path worked end to end — the
+anchor for groups that kept the default, and the baseline every alternative
+is implicitly priced against.'''),
+student_code('''# Paste the Submission 1 cells you are reusing here (calibrated physics,
+# GP toolkit), then build your lightweight analysis below.
+#
+# End by printing, for your final design:
+#   (b, H_web) | estimated mass [g] | central strength prediction [N] | enforced lower bound [N]'''),
+key_code('''def section_props(b, H):
+    """I-section properties. b, H in mm; everything returned in METERS/SI."""
+    tf = (TH - H) / 2.0
+    b_, h_, B_, tf_ = b/1e3, H/1e3, B/1e3, tf/1e3
+    c = (TH/1e3) / 2
+    Ix = (b_*h_**3)/12 + 2*((B_*tf_**3)/12 + B_*tf_*(h_/2 + tf_/2)**2)
+    Iy = (h_*b_**3)/12 + 2*(tf_*B_**3)/12
+    def J_rect(x, y):
+        short, long = min(x, y), max(x, y)
+        r = short/long
+        beta = 1 - 0.63*r + 0.052*r**5
+        return (1/3)*beta*long*short**3
+    J = J_rect(b_, h_) + 2*J_rect(tf_, B_)
+    Cw = Iy*(h_ + tf_)**2/4
+    return dict(Ix=Ix, Iy=Iy, J=J, Cw=Cw, c=c,
+                b=b_, h=h_, tf=tf_, B=B_)
+
+def P_bend(p, sy):
+    return 4*sy*p["Ix"] / (p["c"] * L/1e3)
+def P_LTB(p, sy, k):
+    My = sy*p["Ix"]/p["c"]
+    Lb, zg = k*L/1e3, p["c"]
+    R = p["Cw"]/p["Iy"] + (Lb**2*G*p["J"])/(np.pi**2*E*p["Iy"]) + (C2*zg)**2
+    Mcr = C1*np.pi**2*E*p["Iy"]/Lb**2 * (np.sqrt(R) - C2*zg)
+    return 4*min(My, Mcr)/(L/1e3)
+def Q_flange(p):
+    return p["B"]*p["tf"]*(p["h"]/2 + p["tf"]/2)
+def P_sep(p, tau_i):
+    """Flange-web separation: shear flow vs strength along the printed layer lines."""
+    return 2*tau_i*p["Ix"]*p["b"]/Q_flange(p)
+def capacity(b, H, sy, k, tau_i):
+    """Class model (2026-07-15): plain minimum of the three mode capacities."""
+    p = section_props(b, H)
+    return min(P_bend(p, sy), P_sep(p, tau_i), P_LTB(p, sy, k))
+def gov_mode(b, H, sy, k, tau_i):
+    """Dominant pure-mode proxy, not an observed failure-mechanism label."""
+    p = section_props(b, H)
+    Pb, Ps, Pl = P_bend(p, sy), P_sep(p, tau_i), P_LTB(p, sy, k)
+    return "separation" if Ps < min(Pb, Pl) else (
+        "LTB" if Pl < 0.999*Pb else "bend")
+
+SY_CAL, K_CAL, TAU_CAL = 6.683e+07, 0.377, 1.676e+07
 P_TARGET = 700.0
 
 from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import ConstantKernel as C, RBF
+from sklearn.gaussian_process.kernels import ConstantKernel as C, RBF, Matern
 
-# class-default model: lane A (log str/w), 3% noise — swap in your own lane if you prefer
+# class-default model: lane A (log str/w), RBF, 3% noise, z = 2
 X = df[["b", "H"]].values
 fmu, fsd = X.mean(0), X.std(0) + 1e-12
 y = np.log(df.str_to_weight.values)
@@ -1916,8 +2400,8 @@ mu_lnP = mu_c + ymean + np.log(mass_grid)
 sigma_aleatory = 0.03
 sigma_total = np.sqrt(std**2 + sigma_aleatory**2)
 
-P_lo = ____        # >>> FILL IN: lower predictive strength, exp(mu_lnP minus 2*sigma_total)
-feasible = ____    # >>> FILL IN: boolean mask, P_lo at or above P_TARGET
+P_lo = np.exp(mu_lnP - 2*sigma_total)
+feasible = P_lo >= P_TARGET
 median_strength = np.exp(mu_lnP)
 masked = np.where(feasible, mass_grid, np.inf)
 i = int(np.argmin(masked))
@@ -1929,32 +2413,45 @@ if lighter_infeasible.any():
     j = int(np.argmax(np.where(lighter_infeasible, mass_grid, -np.inf)))
 else:
     j = None
-print(f"LIGHTWEIGHT DESIGN: b = {{b_lt:.2f}} mm, H_web = {{H_lt:.2f}} mm")
-print(f"  mass {{mass_grid[i]:.1f}} g,  P_lo {{P_lo[i]:.0f}} N,  "
-      f"posterior median {{median_strength[i]:.0f}} N")
+print(f"REFERENCE LIGHTWEIGHT DESIGN (class-default rule): "
+      f"b = {b_lt:.2f} mm, H_web = {H_lt:.2f} mm")
+print(f"  mass {mass_grid[i]:.1f} g,  P_lo {P_lo[i]:.0f} N,  "
+      f"posterior median {median_strength[i]:.0f} N")
 print(f"  uncertainty allowance: posterior median - P_lo = "
-      f"{{median_strength[i]-P_lo[i]:.0f}} N")
-print(f"  median-only lightest design: b={{Xg[i_median,0]:.2f}}, "
-      f"H_web={{Xg[i_median,1]:.2f}}, mass={{mass_grid[i_median]:.1f}} g, "
-      f"median={{median_strength[i_median]:.0f}} N, P_lo={{P_lo[i_median]:.0f}} N")
+      f"{median_strength[i]-P_lo[i]:.0f} N")
+print(f"  median-only lightest design: b={Xg[i_median,0]:.2f}, "
+      f"H_web={Xg[i_median,1]:.2f}, mass={mass_grid[i_median]:.1f} g, "
+      f"median={median_strength[i_median]:.0f} N, P_lo={P_lo[i_median]:.0f} N")
 print(f"  mass added by the 2-sigma rule versus median-only: "
-      f"{{mass_grid[i]-mass_grid[i_median]:.1f}} g")
+      f"{mass_grid[i]-mass_grid[i_median]:.1f} g")
 if j is not None:
-    print(f"  closest-in-mass lighter infeasible grid point: b={{Xg[j,0]:.2f}}, "
-          f"H_web={{Xg[j,1]:.2f}}, mass={{mass_grid[j]:.3f}} g "
-          f"({{mass_grid[i]-mass_grid[j]:.3f}} g lighter), P_lo={{P_lo[j]:.0f}} N")
-print(f"  calibrated-physics check: {{capacity(b_lt, H_lt, SY_CAL, K_CAL, TAU_CAL):.0f}} N, "
-      f"mode {{gov_mode(b_lt, H_lt, SY_CAL, K_CAL, TAU_CAL)}}")
-print("\\nCHECKPOINT (class-default model): you should arrive at "
-      "b = «LT_B», H_web = «LT_H», mass = «LT_M» g.")
-print("One grid step of drift from library versions still counts as matching.")
-print("Farther off than that, check your work or talk to a TA.")'''),
-md('''### Stress-test the assumed aleatory noise
+    print(f"  closest-in-mass lighter infeasible grid point: b={Xg[j,0]:.2f}, "
+          f"H_web={Xg[j,1]:.2f}, mass={mass_grid[j]:.3f} g "
+          f"({mass_grid[i]-mass_grid[j]:.3f} g lighter), P_lo={P_lo[j]:.0f} N")
+print(f"  calibrated-physics check: {capacity(b_lt, H_lt, SY_CAL, K_CAL, TAU_CAL):.0f} N, "
+      f"mode {gov_mode(b_lt, H_lt, SY_CAL, K_CAL, TAU_CAL)}")
+print("\\nKEY note: the student notebook no longer prints a checkpoint. This")
+print("reference answer (b = 5.16, H_web = 15.07, 21.9 g) is what the class-")
+print("default recipe produces; groups that changed a knob should land elsewhere,")
+print("and the sweep below says how far elsewhere is still ordinary.")'''),
+student_md(r'''### Stress-test what your design hangs on
 
-The table below refits the same class-default GP at 1%, 3%, and 10% observation
-noise and uses that same value in each future-beam predictive bound. This is a
-sensitivity analysis, not a vote on which noise value is true.'''),
-code('''noise_design_rows = []
+Your design rests on assumptions — the noise you assumed, the kernel, the
+lane, `z`. Pick the one you think your design is most exposed to and vary it;
+report whether the recommended design moves. The class-standard version of
+this check refits the same model at 1%, 3%, and 10% observation noise and
+carries each value into its own predictive bound — a sensitivity analysis,
+not a vote on which noise value is true. If you believe a different knob is
+the fragile one, stress that instead and say why. Memo prompt 5 is where the
+result lands.'''),
+key_md(r'''### Stress-test the assumed aleatory noise (reference for memo prompt 5)
+
+Students choose which assumption to stress; the 1/3/10% noise sweep below is
+the class-standard version most will run. A group that stressed a different
+knob (kernel, lane, z) instead is fine **if the memo says why that knob is
+the exposed one** — grade the substitution argument, not the deviation.'''),
+student_code('''# YOUR CODE: your sensitivity check.'''),
+key_code('''noise_design_rows = []
 for pct in [1, 3, 10]:
     r = pct/100
     gp_r = GaussianProcessRegressor(
@@ -1972,27 +2469,228 @@ for pct in [1, 3, 10]:
         lower_predictive_N=lo_r[i_r]))
 noise_design_table = pd.DataFrame(noise_design_rows)
 print(noise_design_table.round(2).to_string(index=False))'''),
-key_md('''### KEY-only: synthetic example result for the refit demo
+key_md(r'''## 2b. KEY-only: the territory of defensible answers, and an audit tool
+
+Because there is no checkpoint, graders need two things: a map of where
+reasonable designs land, and a way to reproduce any group's claimed numbers.
+
+**The sweep.** Every lane × kernel × {1, 3, 10}% noise × z ∈ {1, 2, 3}
+combination, each yielding its lightest feasible design. Read it as
+territory, not truth:
+
+- The **z = 2 row band** is the rubric's "presumptively reasonable
+  territory." A design inside it needs only ordinary rationale.
+- A design **lighter than anything in the sweep** almost certainly rests on a
+  rule weaker than any combination here (z < 1, noise < 1%, or a
+  median-only rule with padding bolted on). Check whether its own stated
+  lower bound actually clears 700 N — if not, the rubric caps the challenge
+  contribution at half marks.
+- A design **heavier than the sweep's heavy edge** is padding unless the memo
+  prices the grams (a larger z, a named model-form worry). Bare safety
+  factors also cap at half marks.
+- Lane B rows are worth a glance before grading a lane-B group: the strength
+  target is the weakest lane on LOO, and its designs can sit far from the
+  others. That is a memo conversation, not an automatic deduction.
+- The **light edge of the sweep is lane D** (physics-residual): at low
+  assumed noise it accepts thin-web designs near b ≈ 1.6 mm at ~19 g —
+  deep in the separation/LTB proxy region, leaning on the physics between
+  data points. Legitimate, but this is exactly where memo prompt 4 (the
+  physics veto) carries the weight: a lane-D group that never discusses the
+  mode there has not defended its light design.
+
+**The audit.** `check_design(b, H, lane, kernel, noise_pct, z)` reproduces a
+group's mass, median, lower bound, feasibility verdict, physics cross-check,
+and padding under their own stated knobs. If their printed numbers do not
+reproduce (beyond library wobble — roughly one grid step in the design, a few
+N in the bounds), the code check fails before the rationale is graded. For a
+group that replaced the rule entirely (different quantile, physics-vetoed
+constraint, etc.), reproduce their logic from their own code instead and
+grade the argument; `check_design` still gives the nearest-default
+comparison the memo should have priced itself against.'''),
+key_code('''# Submission 1 GP toolkit (verbatim), so any lane/kernel a group chose can be rebuilt here.
+def make_kernel(kernel, ndim):
+    if kernel == "RBF":
+        return C(1.0, (1e-3, 1e3)) * RBF([1.0]*ndim, (1e-1, 30.0))
+    elif kernel == "Matern":
+        return C(1.0, (1e-3, 1e3)) * Matern([1.0]*ndim, (1e-1, 30.0), nu=2.5)
+    raise ValueError(f"unknown kernel {kernel!r}: use 'RBF' or 'Matern'")
+
+def build_feats(bq, Hq, feats):
+    bq, Hq = np.atleast_1d(np.asarray(bq, float)), np.atleast_1d(np.asarray(Hq, float))
+    cols = {"b": bq, "H": Hq}
+    if "logP" in feats or "stab" in feats:
+        pp = [section_props(b, H) for b, H in zip(bq, Hq)]
+        Pb = np.array([P_bend(p, SY_CAL) for p in pp])
+        Pl = np.array([P_LTB(p, SY_CAL, K_CAL) for p in pp])
+        Ps = np.array([P_sep(p, TAU_CAL) for p in pp])
+        cols["logP"] = np.log(np.minimum(Pb, np.minimum(Ps, Pl)))
+        cols["stab"] = Pl/Pb
+    return np.column_stack([cols[f] for f in feats])
+
+def fit_gp(data, alpha=0.03**2, feats=("b", "H"), target="log_sw", kernel="RBF"):
+    Xf = data[list(feats)].values.astype(float)
+    fmu_, fsd_ = Xf.mean(0), Xf.std(0) + 1e-12
+    if target == "log_sw":
+        yf = np.log(data.strength_N.values /
+                    estimated_mass_g(data.b.values, data.H.values))
+    elif target == "log_strength":
+        yf = np.log(data.strength_N.values.astype(float))
+    else:
+        Pphys = np.array([capacity(b, H, SY_CAL, K_CAL, TAU_CAL)
+                          for b, H in zip(data.b, data.H)])
+        yf = np.log(data.strength_N.values) - np.log(Pphys)
+    ym_ = yf.mean()
+    gp_ = GaussianProcessRegressor(make_kernel(kernel, Xf.shape[1]), alpha=alpha,
+                                   normalize_y=False,
+                                   n_restarts_optimizer=5, random_state=0)
+    gp_.fit((Xf - fmu_) / fsd_, yf - ym_)
+    return gp_, fmu_, fsd_, ym_
+
+def predict_sw(gp_, fmu_, fsd_, ym_, bq, Hq, target, feats):
+    Xq = build_feats(bq, Hq, feats)
+    mu, sd = gp_.predict((Xq - fmu_)/fsd_, return_std=True)
+    mu = mu + ym_
+    mass = estimated_mass_g(np.asarray(bq, float), np.asarray(Hq, float))
+    if target == "log_sw":
+        sw = np.exp(mu)
+    elif target == "log_strength":
+        sw = np.exp(mu)/mass
+    else:
+        Pphys = np.array([capacity(b, H, SY_CAL, K_CAL, TAU_CAL)
+                          for b, H in zip(np.atleast_1d(bq), np.atleast_1d(Hq))])
+        sw = Pphys*np.exp(mu)/mass
+    return sw, sd
+
+LANES = {
+    "A plain":    dict(feats=("b", "H"), target="log_sw"),
+    "B strength": dict(feats=("b", "H"), target="log_strength"),
+    "C features": dict(feats=("b", "H", "logP", "stab"), target="log_sw"),
+    "D residual": dict(feats=("b", "H"), target="log_residual"),
+}
+
+def fit_lane(data, lane, alpha=0.03**2, kernel="RBF"):
+    cfg = LANES[lane]
+    d2 = data.copy()
+    Xf = build_feats(d2.b.values, d2.H.values, cfg["feats"])
+    for jj, f in enumerate(cfg["feats"]):
+        d2[f] = Xf[:, jj]
+    gp_, fmu_, fsd_, ym_ = fit_gp(d2, alpha=alpha, feats=cfg["feats"],
+                                  target=cfg["target"], kernel=kernel)
+    return gp_, fmu_, fsd_, ym_, cfg
+
+# In every lane the deterministic pieces (mass, physics capacity) drop out of the
+# variance, so the GP's sd IS the sigma of ln(strength). One helper serves all four.
+def lane_grid_bounds(lane, kernel, noise_pct):
+    """Posterior median strength and sigma_lnP over the standard grid."""
+    r = noise_pct/100
+    gp_, fmu_, fsd_, ym_, cfg = fit_lane(df, lane, alpha=r**2, kernel=kernel)
+    sw, sd = predict_sw(gp_, fmu_, fsd_, ym_, Xg[:, 0], Xg[:, 1],
+                        cfg["target"], cfg["feats"])
+    med_N = sw * mass_grid
+    tot = np.sqrt(sd**2 + r**2)
+    return med_N, tot
+
+sweep_rows = []
+for lane in LANES:
+    for kernel in ("RBF", "Matern"):
+        for noise_pct in (1, 3, 10):
+            med_N, tot = lane_grid_bounds(lane, kernel, noise_pct)
+            for z in (1.0, 2.0, 3.0):
+                lo = med_N * np.exp(-z*tot)
+                ok = lo >= P_TARGET
+                if not ok.any():
+                    sweep_rows.append(dict(lane=lane, kernel=kernel,
+                                           noise_pct=noise_pct, z=z, b=np.nan,
+                                           H_web=np.nan, mass_g=np.nan,
+                                           median_N=np.nan, P_lo=np.nan))
+                    continue
+                k = int(np.argmin(np.where(ok, mass_grid, np.inf)))
+                sweep_rows.append(dict(lane=lane, kernel=kernel,
+                                       noise_pct=noise_pct, z=z,
+                                       b=Xg[k, 0], H_web=Xg[k, 1],
+                                       mass_g=mass_grid[k],
+                                       median_N=med_N[k], P_lo=lo[k]))
+sweep = pd.DataFrame(sweep_rows)
+print(sweep.round(2).to_string(index=False))
+
+z2 = sweep[(sweep.z == 2.0) & sweep.mass_g.notna()]
+print(f"\\nz = 2 territory across all lanes/kernels/noise: "
+      f"mass {z2.mass_g.min():.1f}-{z2.mass_g.max():.1f} g, "
+      f"b {z2.b.min():.2f}-{z2.b.max():.2f} mm, "
+      f"H_web {z2.H_web.min():.2f}-{z2.H_web.max():.2f} mm")
+allz = sweep[sweep.mass_g.notna()]
+print(f"all z in (1, 2, 3):                            "
+      f"mass {allz.mass_g.min():.1f}-{allz.mass_g.max():.1f} g")'''),
+key_code('''def check_design(b, H, lane="A plain", kernel="RBF", noise_pct=3, z=2.0):
+    """Audit one group's claimed design under their own stated knobs.
+
+    Prints everything the rubric needs: mass, median, lower bound,
+    feasibility under their rule, the physics cross-check, and the padding
+    relative to the lightest design their own rule accepts."""
+    r = noise_pct/100
+    gp_, fmu_, fsd_, ym_, cfg = fit_lane(df, lane, alpha=r**2, kernel=kernel)
+    sw, sd = predict_sw(gp_, fmu_, fsd_, ym_, [b], [H],
+                        cfg["target"], cfg["feats"])
+    mass = float(estimated_mass_g(b, H))
+    med = float(sw[0]) * mass
+    tot = float(np.sqrt(sd[0]**2 + r**2))
+    lo = med * np.exp(-z*tot)
+    med_N, tot_g = lane_grid_bounds(lane, kernel, noise_pct)
+    lo_g = med_N * np.exp(-z*tot_g)
+    ok = lo_g >= P_TARGET
+    print(f"design ({b}, {H}) under lane={lane!r}, kernel={kernel}, "
+          f"noise={noise_pct}%, z={z}:")
+    print(f"  estimated mass {mass:.1f} g | median {med:.0f} N | "
+          f"sigma_total {tot:.3f} | P_lo {lo:.0f} N")
+    print(f"  clears 700 N under this rule: {lo >= P_TARGET}")
+    print(f"  physics cross-check: capacity "
+          f"{capacity(b, H, SY_CAL, K_CAL, TAU_CAL):.0f} N, "
+          f"mode {gov_mode(b, H, SY_CAL, K_CAL, TAU_CAL)}")
+    if ok.any():
+        k = int(np.argmin(np.where(ok, mass_grid, np.inf)))
+        print(f"  lightest design THEIR rule accepts: ({Xg[k,0]:.2f}, {Xg[k,1]:.2f}), "
+              f"{mass_grid[k]:.1f} g -> padding carried: {mass - mass_grid[k]:+.1f} g")
+    else:
+        print("  no grid design clears 700 N under this rule")
+
+# example: the reference design audited under the class-default knobs
+check_design(5.16, 15.07)'''),
+key_md(r'''### KEY-only: synthetic example result for the refit demo
 
 The next cell fills the section-1 blanks with an invented but plausible result
 (the Submission 1 default-recipe design failing 3% below its predicted median
 strength) purely so the refit section below shows real output in this KEY.
 It is labeled synthetic and is NOT a test result. Students use their own beam.'''),
-key_code('''b_mine, H_mine = «DEF_B», «DEF_H»
+key_code('''b_mine, H_mine = 1.39, 14.88
 mu_demo = gp.predict((np.array([[b_mine, H_mine]])-fmu)/fsd)[0] + ymean
 P_mine = round(0.97*float(np.exp(mu_demo))*estimated_mass_g(b_mine, H_mine), 1)
 mass_measured_mine = round(float(estimated_mass_g(b_mine, H_mine)), 2)
 note_mine = "synthetic KEY example -- not a real test"
 print(f"KEY demo beam: ({b_mine}, {H_mine}), {P_mine} N (synthetic)")'''),
-md('''## 3. What your beam changes: refit with your own result
+student_md(r'''## 3. What your beam changes: refit with your own result
 
-The lightweight design above deliberately used only the 17 frozen class beams,
-so everyone's checkpoint matches. But your group now owns an 18th data point.
-Fold it in, refit the same class-default model, and see what actually moves:
-the 700 N design, the best-strength-to-weight pick, or neither. There is no
-checkpoint here — the outcome depends on your beam, and it is graded through
-the memo.'''),
-code('''if None in (b_mine, H_mine, P_mine):
+Your lightweight design above should use only the 17 frozen class beams, so
+the memo's argument rests on shared data. But your group now owns an 18th
+point. Append it to `df`, refit the **same** model with the **same** knobs,
+and see what actually moves: the 700 N design, the best-strength-to-weight
+pick, or neither. Print the before-and-after coordinates for both. There is
+no checkpoint here — the outcome depends on your beam, and it is graded
+through the memo. If nothing moves, that is a finding, not a bug: whether one
+test *should* re-shape a 17-beam posterior is a question about your noise and
+length-scale assumptions.'''),
+key_md(r'''## 3. What your beam changes: refit with your own result
+
+Students append their beam as row 18, refit with **their own Submission 1
+knobs**, and print the 700 N design and best-str/w pick before and after. The
+reference implementation below uses the class default.
+
+**Grader checks for section 3:** the refit knobs match the knobs the group
+actually used in section 2 (a silent switch here is a red flag); movement
+claims are quantified in grams and millimeters; "nothing moved" is accepted
+as a finding when connected to the noise and length-scale assumptions.'''),
+student_code('''# YOUR CODE: append your beam as row 18, refit with your Submission 1 knobs,
+# and print the 700 N design and best-str/w pick before and after.'''),
+key_code('''if None in (b_mine, H_mine, P_mine):
     print("Enter your beam in section 1 first; this cell is skipped without it.")
 else:
     mine = pd.DataFrame([dict(beam_id=18, b=b_mine, H=H_mine, strength_N=P_mine,
@@ -2029,10 +2727,12 @@ else:
     print("If nothing moved: one test rarely re-shapes a 17-beam posterior far")
     print("from the tested point. Whether it SHOULD have moved more is a memo")
     print("question about the noise and length-scale assumptions, not a code bug.")'''),
-md('''## Memo
+md(r'''## Memo
 
 Write it in markdown cells below this one, answering the prompts in order —
-400 to 800 words. This memo is the module's primary assessed artifact.
+400 to 800 words. This memo is the module's primary assessed artifact, and
+this submission generates no numbers for you: every figure you cite must come
+out of code your group ran above.
 
 0. Card row 11: before the prompts, complete the **Update** row of your
    decision card — what did the result change: your model, your confidence,
@@ -2042,52 +2742,93 @@ Write it in markdown cells below this one, answering the prompts in order —
    what your group **preregistered** — the interval, the expected morphology,
    and the named most-likely-to-break assumption. Was the surprise (or its
    absence) the one you priced?
-2. Margin: use the printed posterior median, lower bound, median-only design,
-   robust design, and closest-in-mass lighter infeasible candidate. State the
-   comparison in newtons and grams.
-3. `z`: defend 2 or price another value. Under the independent Gaussian
-   log-noise model, the chance that one future measured beam falls below a
-   two-sigma lower predictive bound is 2.28%. Kernel and model-form errors are
-   outside that probability statement.
-4. Physics veto: cite the calibrated capacity and dominant-mode proxy. If it
-   disagrees with the GP constraint, explain which evidence you prioritize.
-5. Noise sensitivity: use the 1/3/10% table. State what moves and whether your
-   design decision is assumption-sensitive.
+2. Margin: state, in newtons and grams, what your confidence rule bought.
+   That takes three designs from your own analysis: your final pick, the
+   lightest design a median-only rule would accept, and a lighter design
+   your rule rejects. If you cannot produce the second and third, your rule
+   was never really tested.
+3. Confidence rule: defend your `z` (or whatever replaced it). Under the
+   independent Gaussian log-noise model, the chance that one future measured
+   beam falls below a two-sigma lower predictive bound is 2.28%. Kernel and
+   model-form errors are outside that probability statement.
+4. Physics veto: cite the calibrated capacity and dominant-mode proxy at your
+   design. If the physics disagrees with the GP constraint, explain which
+   evidence you prioritize.
+5. Sensitivity: which assumption did you stress-test, what moved, and is your
+   design decision assumption-sensitive? If you departed from the 1/3/10%
+   noise sweep, defend the substitution.
 6. One more test: provide coordinates and say whether posterior median,
    epistemic sigma, or proximity to the feasibility boundary motivates it.
 7. Redesign: from section 3, did your result move the lightweight design or
    the best-str/w pick? Whichever way it went, defend what you would print
    next, and connect the movement (or its absence) to the noise and
-   length-scale assumptions.'''),
-key_md('''## KEY: memo targets
+   length-scale assumptions.
 
-1. The interval must compare like denominators: measured strength divided by
-   estimated mass versus the GP prediction trained on that same quantity.
-   Measured mass is reported separately as print-process evidence.
-2. The class-default output directly supplies the required quantities and a
-   defined closest-in-mass lighter grid point. Students should not compare against the
-   globally lightest infeasible beam.
-3. `z=2` corresponds to a 2.28% one-sided tail for one future observation only
-   under the independent Gaussian log-noise model. Sparse data, kernel choices,
-   and model-form error make that probability provisional.
-4. Compare the printed GP lower bound with the empirical-physics capacity and
-   proxy mode. Agreement is supporting evidence, not independent validation,
-   because both were informed by the same small campaign.
-5. Use the generated 1/3/10% table. Movement indicates assumption sensitivity;
-   stability is local robustness, not proof of the assumed noise.
-6. A useful extra test lies near the active lower-boundary contour, especially
-   where epistemic uncertainty or an observed separation mechanism could change
-   feasibility.
-7. Either outcome is defensible on the evidence; strong answers quantify the
-   movement (or its absence) in grams and millimeters and tie it to the 3%
-   noise assumption and the fitted length scales, rather than asserting that
-   the model "learned" from one point.'''),
+**Individual postscript (each student, 3–5 sentences, after the group memo):**
+one place you agreed with the group's decision and one place you would have
+decided differently, with the evidence you'd cite. Dissent costs nothing;
+unsupported dissent and unsupported agreement are graded the same way.'''),
+key_md(r'''## KEY: memo targets
+
+Because students choose their own rule, most prompts no longer have a single
+right number. For each, the target is a *shape of argument*; the sweep and
+`check_design` supply the numbers to hold it against.
+
+0. **Card row 11.** One named assumption, one named change (model /
+   confidence / next design). "We learned a lot" with nothing named earns no
+   credit.
+1. **Reflection.** Like denominators (model-basis ratio vs the GP trained on
+   it); the comparison is against the *preregistered* interval and
+   morphology, quoted, not paraphrased from memory. Outside-interval results
+   must hold model-form error, print variability, and unmodeled mechanism
+   apart as live candidates. Strong: "the miss was (not) the one we priced,
+   because…". Weak: post-hoc single-cause stories, or "agreed well" with no
+   numbers.
+2. **Margin.** Three designs, all from their own analysis: final pick,
+   median-only pick, and a lighter rejected design — stated in N and g.
+   Verify all three with `check_design` under their knobs. A memo that cannot
+   produce the rejected design never exercised its own rule; that caps this
+   prompt regardless of prose quality.
+3. **Confidence rule.** z = 2 defended via the 2.28% one-sided tail *with its
+   scope stated* (one future beam, independent Gaussian log-noise, kernel and
+   model-form outside it) is full credit. Another z, or a replacement rule,
+   is graded on whether its consequence is priced in grams and its
+   probability claim is scoped as carefully. An unscoped "95% safe" is the
+   canonical weak answer.
+4. **Physics veto.** The calibrated capacity and proxy mode at *their*
+   design, from their code (`check_design` prints both). Agreement between
+   GP and physics is supporting evidence, not independent validation — both
+   were informed by the same 17-beam campaign. Disagreement demands a stated
+   priority and a reason.
+5. **Sensitivity.** What moved, in mm and g, and the verdict
+   "assumption-sensitive or not." Stability under their sweep is local
+   robustness, not proof the assumption is right — strong memos say so. A
+   substituted stress-test needs a one-sentence exposure argument.
+6. **One more test.** Coordinates plus a named motive (median, epistemic
+   sigma, or feasibility boundary). Near the active lower-bound contour —
+   especially where the proxy mode changes or sigma is large — is the strong
+   region; a point far from both the boundary and any uncertainty is
+   decoration.
+7. **Redesign.** Either outcome (moved / did not move) is defensible; credit
+   quantified movement tied to the noise and length-scale assumptions.
+   Automatic "refit found a new optimum, we would print it" with no
+   connection to the observation is the canonical weak answer.
+
+**Half-marks caps (from the rubric, applied to the challenge):** a design
+whose own stated lower bound sits under 700 N; or padding beyond the group's
+own lightest confident design defended only by a bare safety factor. The
+sweep's z = 2 band marks presumptively reasonable territory on the heavy
+side.'''),
 ]
 
 # ----------------------------------------------------------------------------------
 # 4. solution run: derive + verify every checkpoint from the notebook code itself
 # ----------------------------------------------------------------------------------
 SOLUTIONS = {
+    'mu_1 = ____       # >>> FILL IN: the sample mean (same first move as ME 239)':
+        'mu_1 = repeats_N.mean()                        # the sample mean, as in ME 239',
+    'sigma2_1 = ____   # >>> FILL IN: np.mean(repeats_N**2) - mu_1**2  (method of moments)':
+        'sigma2_1 = np.mean(repeats_N**2) - mu_1**2     # method of moments',
     'df["str_to_weight"] = ____    # >>> FILL IN: strength divided by estimated mass':
         'df["str_to_weight"] = df.strength_N / df.mass_est_g',
     """peak_N = ____    # >>> FILL IN: reduce each beam's trace to its peak force
@@ -2217,7 +2958,9 @@ print(f"S1 default-lane final: ({ns3['b_final']:.2f}, {ns3['H_final']:.2f}); "
       f"EI split verified, EI pick near {S1_EI_NEAR}")
 
 print("running Submission 2 solution ...")
-ns4, _ = run_solution(S2)
+# S2's executable path is the KEY reference solution (student cells are
+# paste-your-own scaffolds), so run code + key_code and skip student_code.
+ns4, _ = run_solution([("code", s) for k, s in S2 if k in ("code", "key_code")])
 LT_B, LT_H, LT_M = ns4["b_lt"], ns4["H_lt"], float(ns4["mass_grid"][int(np.argmin(np.where(ns4["feasible"], ns4["mass_grid"], np.inf)))])
 
 # ----------------------------------------------------------------------------------
@@ -2269,7 +3012,7 @@ def write_nb(cells, path):
             continue
         for a, b in TOKENS.items():
             s = s.replace(a, b)
-        nb_cells.append(nbf.v4.new_markdown_cell(s) if kind == "md"
+        nb_cells.append(nbf.v4.new_markdown_cell(s) if kind in ("md", "student_md")
                         else nbf.v4.new_code_cell(s))
     nb = nbf.v4.new_notebook(cells=nb_cells, metadata={
         "kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"},
@@ -2290,6 +3033,8 @@ def write_key(cells, path):
     nb_cells = []
     first_md = True
     for kind, s in cells:
+        if kind in ("student_md", "student_code"):
+            continue
         for a, b in SOLUTIONS.items():
             s = s.replace(a, b)
         for a, b in TOKENS.items():

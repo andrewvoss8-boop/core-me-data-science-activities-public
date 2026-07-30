@@ -93,21 +93,33 @@ The efficient shape and the failure modes pull against each other; resolving tha
 
 ---
 
+## Shear in a beam: the check you already know
+
+In each half-span, $V=P/2$. The quick estimate says the web carries it all, $\tau_{avg}\approx V/(b\,H_\text{web})$. The full formula prices the longitudinal shear on **any** horizontal plane of the section:
+
+$$\tau(y)=\frac{V\,Q(y)}{I_x\,t(y)}$$
+
+- $Q(y)$: first moment of the area *beyond* the plane; $t(y)$: width at the plane. Peaks at the neutral axis ($\tfrac32 V/A$ for a rectangle).
+- The textbook check — $\tau$ at the neutral axis against $\tau_y=\sigma_y/\sqrt3=43.9$ MPa — clears by ~3×: at $(b,H_\text{web})=(2,12)$ the web would not rupture until ≈2495 N, but bending yields the flange at 835 N.
+- Verdict: for a beam made of **one material**, shear never governs here. Ours is not one material.
+
+---
+
 ## Flange-web separation: shear flow at the printed junction
 
 ![height:340px](figures/fig_shear_web.png)
 
-Every observed "shear-type" failure in the campaign is a flange peeling off the web — a fracture running *along* the printed flange-web interface. The stress that plane carries is the classic built-up-beam **shear flow** ($V=P/2$ in three-point bending):
+Every observed "shear-type" failure in the campaign is a flange peeling off the web — a fracture running *along* the printed flange-web interface. Not the most-stressed plane; the **weakest** one. Slide the same $VQ/(I_x t)$ to the junction — $Q$ becomes the flange's first moment, $t$ the joint width — and it becomes the classic built-up-beam glue-line **shear flow** check ($V=P/2$):
 
 $$\tau_j=\frac{V\,Q_f}{I_x\,t_w},\qquad Q_f=B\,t_f\,\frac{H_\text{web}+t_f}{2}\qquad\Rightarrow\qquad P_\text{sep}=2\,\tau_i\,\frac{I_x\,t_w}{Q_f}$$
 
-The stress measure is textbook mechanics — the same glue-line check used for any built-up member.
+At the junction the stress is ~14% *lower* than at the neutral axis ($Q_f/Q_{NA}\approx0.86$ at (2,12)): this plane fails first because it is weaker, not because it is more stressed.
 
 ---
 
 ## What the separation check assumes
 
-The strength side is not textbook: $\tau_i$ is the bond strength **along the printed layer lines**, weaker than the bulk plastic, and no handbook lists it. Pre-lab 1 starts it at the bulk guess $\sigma_y/\sqrt3=43.9$ MPa and calibrates it from the test data — it lands near 18 MPa, and it drifts with print session and support condition.
+The stress side is textbook — the same $VQ/(I_x t)$ you already knew, evaluated one plane up. The strength side is not textbook: $\tau_i$ is the bond strength **along the printed layer lines**, weaker than the bulk plastic, and no handbook lists it. Pre-lab 1 starts it at the bulk guess $\sigma_y/\sqrt3=43.9$ MPa and calibrates it from the test data — it lands near 18 MPa, and it drifts with print session and support condition.
 
 The check predicts a capacity trend on one candidate plane. It is a dominant-mode proxy, not a fracture diagnosis — real beams still blur modes and fail progressively.
 
