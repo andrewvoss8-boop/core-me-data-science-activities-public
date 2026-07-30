@@ -3,9 +3,13 @@
 One page per design gate, the same eleven questions every time. Your group
 fills this card twice: with Submission 1 (before your beam is printed — rows
 1–10 plus the preregistration table) and with Submission 2 (add row 11). The
-card is the skeleton of your memo: every memo prompt maps onto a row, and
-graders read the card before the memo. Keep each row to one to three
-sentences, with numbers where numbers exist.
+card is filed with the notebook submission as the concise, on-record summary
+of your design decisions; it does not go inside the memo. The memo carries
+the longer-form version: preregistration outcomes presented in its Results
+section, and the reasoning behind these rows expanded in its Discussion.
+Every memo prompt maps onto a row, and graders read the card before the
+memo. Keep each row to one to three sentences, with numbers where numbers
+exist.
 
 The card puts your group on record before the test: what you predicted, what
 you feared, and what would have changed your mind. After the test, any group
@@ -40,11 +44,10 @@ no interval earns nothing here, and neither does "it might separate or bend."
 | Calibrated-physics capacity (N) and governing mode | |
 | GP posterior median (state units and denominator) | |
 | Epistemic sigma at the design | |
-| Interval for one future test (lower, upper, and your z) | |
 | Expected observed failure morphology (what the note-taker will write) | |
 | The one assumption most likely to break this prediction | |
-| The *low* outcome that would change your next design (explicit threshold or observation; if the threshold sits below your interval floor, say why) | |
-| The *high* outcome that would change it (what a result above your ceiling would redirect) | |
+| The *low* outcome that would change your next design (explicit threshold or observation) | |
+| The *high* outcome that would change it (a result far above your prediction indicts the model too) | |
 
 ## How this is graded
 

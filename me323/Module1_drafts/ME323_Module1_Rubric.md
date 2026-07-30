@@ -5,14 +5,18 @@ available**. A weak decision can produce a strong beam through luck; a strong
 decision can meet print variability or an unmodeled failure. The leaderboard
 makes testing day exciting; this rubric carries the grade.
 
-**Memo format:** each memo is written in markdown cells at the end of its
-submission notebook, answering only that submission's numbered prompts, in
-order. Submission 1's memo covers its prompts in about half a page; Submission
-2's memo is the module's primary assessed artifact, 400–800 words. The pre-lab
-memo questions are answered in markdown cells at the end of each pre-lab
-notebook and are graded there — under the physics and data/ML dimensions below
-— not re-answered in the submission memos. Both submissions also file the
-decision card (`ME323_Module1_DecisionCard.md`); graders read the card first.
+**Memo format:** the pre-lab memo questions are answered in markdown cells at
+the end of each pre-lab notebook and are graded there — under the physics and
+data/ML dimensions below — not re-answered in the submission memos.
+Submission 1's memo is a standalone written document, structured as a short
+engineering report: preregistration outcomes presented in its Results
+section, and the notebook's five discussion prompts answered in order in its
+Discussion, citing the notebook's figures as evidence — about half a page for
+prompts 1–4, a few sentences for 5. Submission 2's memo is written in
+markdown cells at the end of its notebook, answering that submission's
+numbered prompts in order; it is the module's primary assessed artifact,
+400–800 words. Both submissions also file the decision card
+(`ME323_Module1_DecisionCard.md`); graders read the card first.
 
 ## Group and individual work
 
@@ -41,14 +45,16 @@ assessed.
 | **Physics model and assumptions** | 20% | Pre-lab 1 + its memo Qs; card rows 2, 6 | Uses the three capacity branches, mode competition, and calibration honestly; treats the dominant-mode label as a proxy; takes a position on whether each fitted parameter (σ_y, k, τᵢ) corrects a handbook number or measures an unlisted property; names where the physics is fragile (knife edges, fixture assumptions, the thin-web frontier). Reduces the raw traces correctly and defends the beam-9 judgment call. | Reports the minimum capacity or the printed mode label as truth; treats calibrated values as material data; no validity limits. |
 | **Data/ML model and validation** | 20% | Pre-lab 2 + its memo Qs; Submission 1 sections 2–3; card rows 3–5 | Distinguishes posterior median, epistemic sigma, aleatory noise, and total predictive uncertainty and uses each for its own job; reads the LOO table as 17-point evidence with a scope (including its stated conditional-on-calibration caveat); defends the chosen architecture on card row 4 and checks sensitivity to kernel and noise instead of treating them as facts. | Reports the optimizer output as fact; picks the lowest LOO number with no regional reasoning; defaults everywhere with no sensitivity check. |
 | **Synthesis and the design decision** | 25% | Submission 1 section 4 + memo; card rows 1, 7–9 | Puts physics and GP predictions side by side *at the candidate*, explains the disagreement or the grounds for trusting the agreement, states the risk posture, compares a credible rejected alternative, and commits. A defended default recipe outscores an arbitrary exotic one. | Selects the largest predicted number; averages the two models without explanation; no alternative considered; risk posture unstated or asserted after the fact. |
-| **Preregistration and experimental plan** | 15% | The preregistration table; card row 10 | Sharp, falsifiable predictions filed before printing: load with an interval, a named expected morphology, the assumption most likely to break, and explicit outcomes in both directions — low and high — that would change the next design. | Vague predictions that cannot be proven wrong ("around 500 N", "separation or bending"); falsifier missing or circular; table filed late. |
-| **Test interpretation, update, and redesign** | 20% | Submission 2 sections 1–3 + memo; card row 11 | Compares the result to the *preregistered* interval and morphology; separates print variability, manufacturing deviation, model-form error, and mechanism hypotheses without claiming one test identifies the cause; uses the section-3 refit to make a specific, evidence-connected next move — and says so plainly when the honest answer is "one test doesn't distinguish these." | Assigns one cause to every discrepancy; "agreed well" with no comparison; refits automatically and reports a new optimum with no connection to the observation. |
+| **Preregistration and experimental plan** | 15% | The preregistration table; card row 10 | Sharp, falsifiable predictions filed before printing: a central strength prediction with its stated sigma, a named expected morphology, the assumption most likely to break, and explicit outcomes in both directions — low and high — that would change the next design. | Vague predictions that cannot be proven wrong ("around 500 N", "separation or bending"); falsifier missing or circular; table filed late. |
+| **Test interpretation, update, and redesign** | 20% | Submission 2 sections 1–3 + memo; card row 11 | Compares the result to the interval built from the *preregistered* prediction and sigma (Submission 2 section 1) and to the *preregistered* morphology; separates print variability, manufacturing deviation, model-form error, and mechanism hypotheses without claiming one test identifies the cause; uses the section-3 refit to make a specific, evidence-connected next move — and says so plainly when the honest answer is "one test doesn't distinguish these." | Assigns one cause to every discrepancy; "agreed well" with no comparison; refits automatically and reports a new optimum with no connection to the observation. |
 
 **Communication is graded inside every dimension**, not as its own line: a few
 decision-relevant figures with consistent units and denominators, prose a
 non-expert could follow. Twenty plots with no evidence chain lose points in the
-dimension those plots were supposed to serve. Submission 1's memo names the
-**three figures** that carry its argument; graders may ignore the rest.
+dimension those plots were supposed to serve. A strong Submission 1 memo
+builds its Discussion on the few notebook figures that carry the argument,
+cited as supporting evidence; graders may ignore figures the memo never
+calls on.
 
 **Beam performance bonus (up to +3% module grade, group):** strongest tested
 str/w in class, or lightest beam clearing 700 N if tested. Bonus only — a

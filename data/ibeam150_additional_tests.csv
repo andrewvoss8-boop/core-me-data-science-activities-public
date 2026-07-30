@@ -1,17 +1,17 @@
 b,H,tag,proper_supports,session,strength_N,stiff_N_mm,d_at_peak,mass_calc_g,sw,failure_note,source_csv
-1.0,10.0,,False,1,669.6,125.4,6.31,18.4,36.38,Seperation of the top flange from the web. Vertical crack also at the center of the beam.,B_1_H_10_1.csv
-1.0,12.5,,False,1,475.0,96.0,5.64,13.8,34.41,Seperation of the top flange from the web. Interface between the bottom flange and web also fractured horizontally about 80% through the beam.,B_1_H_12.5_1.csv
+1.0,10.0,,False,1,669.6,125.4,6.31,18.4,36.38,Separation of the top flange from the web. Vertical crack also at the center of the beam.,B_1_H_10_1.csv
+1.0,12.5,,False,1,475.0,96.0,5.64,13.8,34.41,Separation of the top flange from the web. Interface between the bottom flange and web also fractured horizontally about 80% through the beam.,B_1_H_12.5_1.csv
 1.1,12.5,,False,7,540.7,95.0,7.03,14.06,38.46,"Vertical crack, however, it was toward the end of the beam, not the center. Discoloration at the center, but no crack formation.",B_1.10_H_12.5_7.csv
-1.25,13.4,S1,False,2,470.8,95.5,5.57,12.83,36.69,Seperation of the top flange from the web. Interface between the bottom flange and web also fractured horizontally about 80% through the beam.,B_1.25_H_13.4_S1_2.csv
-1.25,13.4,S2,False,3,500.8,95.4,6.38,12.83,39.03,Top and bottom flange seperated from the web.,B_1.25_H_13.4_S2_3.csv
-1.3,12.8,PS,True,8,524.2,80.5,8.06,14.04,37.34,Top and bottom flange seperated from the web.,B_1.3_H_12.8_PS_8.csv
+1.25,13.4,S1,False,2,470.8,95.5,5.57,12.83,36.69,Separation of the top flange from the web. Interface between the bottom flange and web also fractured horizontally about 80% through the beam.,B_1.25_H_13.4_S1_2.csv
+1.25,13.4,S2,False,3,500.8,95.4,6.38,12.83,39.03,Top and bottom flange separated from the web.,B_1.25_H_13.4_S2_3.csv
+1.3,12.8,PS,True,8,524.2,80.5,8.06,14.04,37.34,Top and bottom flange separated from the web.,B_1.3_H_12.8_PS_8.csv
 1.3,12.8,S1,False,7,565.2,97.1,7.05,14.04,40.27,Vertical crack propigation up to the top flange.,B_1.3_H_12.8_S1_7.csv
 1.3,12.8,S2,False,3,566.1,102.7,6.74,14.04,40.33,Vertical crack propigation up to the top flange.,B_1.3_H_12.8_S2_3.csv
 1.3,12.8,S3,False,4,553.0,100.9,6.68,14.04,39.4,Vertical crack propigation up to the top flange.,B_1.3_H_12.8_S3_4.csv
 1.74,14.88,PS,True,10,376.1,66.2,7.04,11.68,32.21,Flipped on the test stand due to buckling.,B_1.74_H_14.88_PS_10.csv
 1.74,14.88,S1,False,9,383.8,70.6,7.31,11.68,32.87,Flipped on the test stand due to buckling.,B_1.74_H_14.88_S1_9.csv
 1.74,14.88,S2,False,4,414.4,84.4,5.82,11.68,35.49,Flipped on the test stand due to buckling.,B_1.74_H_14.88_S2_4.csv
-2.05,10.1,,False,5,747.5,128.8,7.08,20.39,36.66,Vertical crack propigation up to the top flange. Half of the top flange seperated form the web.,B_2.05_H_10.1_5.csv
+2.05,10.1,,False,5,747.5,128.8,7.08,20.39,36.66,Vertical crack propigation up to the top flange. Half of the top flange separated form the web.,B_2.05_H_10.1_5.csv
 2.05,10.1,PS,True,11,660.2,102.0,8.33,20.39,32.38,Vertical crack propigation up to the top flange.,B_2.05_H_10.1_PS_11.csv
 2.55,10.8,,False,6,728.9,128.1,6.99,20.36,35.81,Vertical crack propigation up to the top flange.,B_2.55_H_10.8_6.csv
 2.7,9.4,S1,False,8,782.5,134.9,7.2,22.78,34.35,Vertical crack propigation up to the top flange.,B_2.7_H_9.4_S1_8.csv
