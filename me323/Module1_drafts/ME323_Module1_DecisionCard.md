@@ -18,13 +18,13 @@ can explain the result. The card shows which groups saw it coming.
 | 1 | **Decision.** What beam do you recommend? `(b, H_web)` and its estimated mass. | |
 | 2 | **Physics.** What capacity and governing failure mode does the calibrated mechanics model predict there? Include the runner-up mode and its margin. | |
 | 3 | **Data.** What does your GP predict there (posterior median, in the units you model)? | |
-| 4 | **Model choice.** Which GP architecture did you choose (lane, kernel, noise, acquisition rule), and why? Was your recommended design sensitive to these choices? If it was, why did you keep it? | |
+| 4 | **Model choice.** State every knob behind your pick — lane, kernel, noise, acquisition rule, and dial — and why. Was your recommended design sensitive to these choices? If it was, why did you keep it? Every number on this card is read as coming from these knobs; any that doesn't must say where it came from and why you used it. | |
 | 5 | **Uncertainty.** Epistemic sigma at your design, and the total predictive interval for one future test. | |
 | 6 | **Support.** How close is this design to tested beams, and what did the nearest ones do (strength *and* failure note)? | |
 | 7 | **Disagreement.** Where do the physics and the GP disagree near your design, and what is your best explanation of why? | |
 | 8 | **Risk posture.** Is this pick exploiting, exploring, or replicating? Name your acquisition rule and dial value. | |
 | 9 | **Alternative.** What credible design did you reject, and what tipped the choice? | |
-| 10 | **Falsifier.** What test outcome — a load, a failure morphology, or both — would make you abandon this model or this region? | |
+| 10 | **Falsifier.** What test outcome would make you abandon this model or this region? Give one in each direction — a low load (at your interval floor, or say why it differs) and a high one (a result above your ceiling indicts the model too) — plus any failure morphology that fires regardless of load. | |
 | 11 | **Update** *(after the test)*. What did the result change: your model, your confidence, or your next design? Name the assumption that moved. | |
 
 ## Preregistration (filed with Submission 1, before printing)
@@ -43,7 +43,8 @@ no interval earns nothing here, and neither does "it might separate or bend."
 | Interval for one future test (lower, upper, and your z) | |
 | Expected observed failure morphology (what the note-taker will write) | |
 | The one assumption most likely to break this prediction | |
-| The outcome that would change your *next* design (explicit threshold or observation) | |
+| The *low* outcome that would change your next design (explicit threshold or observation; if the threshold sits below your interval floor, say why) | |
+| The *high* outcome that would change it (what a result above your ceiling would redirect) | |
 
 ## How this is graded
 
