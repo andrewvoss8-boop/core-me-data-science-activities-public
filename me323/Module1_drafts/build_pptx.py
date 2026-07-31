@@ -304,11 +304,11 @@ def build_lecture2():
                 "A model that learns from sparse data and tells you how much it does not know.\n"
                 "Flow and examples adapted from Prof. Bilionis's data-science lecturebook.")
 
-    bullets_slide(prs, "Where Pre-lab 1 left you", [
-        ("You coded three capacity branches — flexural yield, junction shear-flow separation, LTB — calibrated (sigma_y, k, tau_i), and took the minimum: one capacity number per design.", 1),
-        ("The parity plot showed where that number holds and where it misses.", 1),
-        ("Your optimizer picked b = 1.10, H_web = 13.25 mm: predicted 48.7 N/g. Staff queried the ground truth model — a frozen model fit to a prior campaign of real bend tests, standing in for the testing machine — and it returned 475.7 N = 37.48 N/g on the estimated-mass basis. There all three mode capacities tie within ~1%, so the 'LTB' proxy is a knife-edge call.", 1),
-        "The physics gave you a point estimate sitting on a mode boundary, the region where you trust it least. Today's tool adds what is missing: a statement of confidence.",
+    bullets_slide(prs, "The equations overpredicted a strong beam", [
+        ("The three calibrated capacity equations selected b = 1.10 mm, H_web = 13.25 mm and predicted 48.7 N/g.", 1),
+        ("Ground-truth data from earlier tests gave 475.7 N = 37.48 N/g, about 23% below the equation prediction.", 1),
+        ("All three modeled capacities tie within about 1% there, so the design sits on a mode boundary.", 1),
+        "The equations found a strong beam, but overpredicted its performance. Today's tool adds a statement of confidence to the point estimate.",
     ], size=20)
 
     bullets_slide(prs, "You already have most of this", [
@@ -322,82 +322,81 @@ def build_lecture2():
 
     eq_slide(prs, "Bayes, in one line", "eq/bayes.png", [
         "You start with a belief about beam strength. You test a beam. You update the belief.",
-        "Carry a distribution over the unknown strength surface, not a single guess.",
-        "Every slide that follows is this line, applied to beams.",
+        "Prior: belief before the test. Likelihood: compatibility with the result. Posterior: belief after the test.",
+        "Carry a distribution over unknown beam strength, not a single guess.",
     ])
 
-    image_slide(prs, "A Gaussian is a belief about one beam", "figures/fig_gauss_strength.png",
-                caption="Exactly ME 239's \"fitting Normals to data\" (lecture 12) — mean, variance, st.norm — done on strength. Pre-lab 2's warm-up replays it on these four beams.",
-                source="Where does 3% come from? Four repeat prints at (1.3, 12.8) spanned 548.6-566.1 N; pooled over all repeats the scatter runs ~4.4% with session/printer structure. 3% is the stated class working value.")
+    image_slide(prs, "A Gaussian is a belief about one beam", "figures/fig_gauss_strength_repeats.png",
+                caption="Four repeat tests at one design give mean 558.2 N and fitted scatter 7.6 N, about 1.4%.",
+                source="Pooled campaign repeats give about 4.4% with session/printer structure. The class uses 3% as a working assumption and checks its effect.")
     image_slide(prs, "Two beams at once: covariance", "figures/fig_mvn_correlation.png",
                 caption="Nearby designs share material, geometry, and physics, so their strengths move together.",
                 source="The covariance matrix writes that down. This is the piece the GP is built on.")
     image_slide(prs, "Conditioning: measure one, update the other", "figures/gif_conditioning.gif",
                 caption="Measure beam A and the joint Gaussian conditions: belief about B shifts and tightens.",
                 source="You did this algebra in ME 239. Everything today is this move, repeated.  (animated in slideshow)")
-    image_slide(prs, "A function is a long Gaussian vector", "figures/gif_mvn_to_gp.gif",
-                caption="Strength at 2 designs is a 2D Gaussian; at 120 designs, a 120-D Gaussian. Connect the dots and it is a function.",
-                source="A kernel fills in the covariances: nearby beams correlate, distant ones do not.  (animated in slideshow)")
+    image_slide(prs, "A GP links predictions across many designs", "figures/gif_mvn_to_gp.gif",
+                caption="The same joint-Gaussian update can cover 2 designs or 120.",
+                source="A kernel makes a test influence nearby designs more than distant ones.  (animated in slideshow)")
     image_slide(prs, "A Gaussian Process, before and after data", "figures/fig_gp_prior_posterior.png",
                 caption="Before data the kernel proposes candidate curves; each test kills the ones that disagree.",
                 source="The module models log(str/w): exp(mu_log) is the posterior median in N/g; the band is conditional uncertainty.")
-    image_slide(prs, "Watch it learn, one beam at a time", "figures/gif_gp_learning_beams.gif",
-                caption="The band collapses where beams land and stays wide where nothing has been tested.",
-                source="Earlier span-200 campaign; rebuilt from the new 44-beam dataset when testing finishes.  (animated in slideshow)")
+    image_slide(prs, "Each test reshapes nearby predictions", "figures/fig_gp_current_campaign_slice.png",
+                caption="Current class-campaign data on a thin-web slice: the band narrows near tested beams.",
+                source="The band stays wide where the model has less support.")
     image_slide(prs, "The kernel is a modeling choice", "figures/fig_kernel_lengthscale.png",
                 caption="The length scale answers: how far does one test's influence reach?",
                 source="No single right answer; there are defensible and indefensible ones.")
-    image_slide(prs, "So is the noise", "figures/fig_noise_fits.png",
-                caption="We assume 3% as the class working value. Pre-lab 2 refits at 1%, 3%, and 10%.",
-                source="The recommendation moves: 1% picks (1.58, 14.88), while 3% and 10% pick (1.00, 13.39). The action is assumption-sensitive.")
+    image_slide(prs, "Noise changes both the fit and its uncertainty", "figures/fig_noise_uncertainty_shared_scales.png",
+                caption="Pre-lab 2 refits at 1%, 3%, and 10% using shared row-wise color scales.",
+                source="The 1% fit recommends (1.58, 14.88); the 3% and 10% fits recommend (1.00, 13.39).")
 
     bullets_slide(prs, "Epistemic and aleatory uncertainty do different jobs", [
-        ("Epistemic: uncertainty about the latent surface because tests are sparse. Informative beams can reduce it.", 1),
-        ("Aleatory: print-to-print and test-to-test scatter at one nominal design. Another location does not remove it.", 1),
+        ("Epistemic: uncertainty about the underlying average trend because tests are sparse. An informative new beam can reduce it.", 1),
+        ("Aleatory: print-to-print and test-to-test scatter at one nominal design. Testing another location does not remove it.", 1),
         ("For one future observation in log space: sigma_total = sqrt(sigma_epi^2 + r^2), with r = 0.03.", 1),
         "MUI and EI use epistemic sigma because they value learnable uncertainty. A reliability bound for one future printed beam uses total sigma.",
     ], size=20)
 
-    image_slide(prs, "Explore vs exploit", "figures/fig_explore_exploit.png", eq="eq/mui.png",
-                source="Exploit: test where the posterior median is highest. Explore: test where epistemic uncertainty is widest. MUI (maximum upper interval) uses latent log space.",
+    image_slide(prs, "One dial balances performance and uncertainty", "figures/fig_explore_exploit.png", eq="eq/mui.png",
+                source="a(x): acquisition-function score; mu(x): predicted log(str/w); sigma(x): epistemic uncertainty; psi: how strongly uncertainty affects the choice.",
                 max_h=3.7)
 
     image_slide(prs, "The loop: Bayesian optimization", "figures/gif_bo_mui.gif",
-                caption="Fit, pick the acquisition argmax, test, refit. It probes the thin-web corner once, learns the dip, settles on the peak.",
+                caption="Fit, evaluate the acquisition function, choose the design with the highest score, test, and refit.",
                 source="Seven tests, no gradient, no formula for the dip.  (animated in slideshow)")
 
-    bullets_slide(prs, "Expected Improvement, the other dial", [
-        "EI asks: by how much would a new test beat the best beam so far, on average?",
-        ("accounts for both latent mean mu and epistemic uncertainty sigma, like MUI,", 1),
-        ("but weighs improvement, so it stops caring about regions that cannot win,", 1),
-        ("and it has its own dial, xi: an improvement threshold. xi = 0 lets the probabilities trade on their own; larger xi counts only wins that clear the incumbent by that margin, pushing exploration.", 1),
-        "MUI and EI can point at different next beams. The choice encodes your appetite for risk; Pre-lab 2 has you code both.",
-    ], size=21)
+    image_slide(prs, "EI weighs the chance and size of a win", "figures/fig_mui_ei_current.png",
+                caption="EI asks how much a new test would beat the best tested beam so far, on average.",
+                source="Increasing xi often favors less-certain regions, but does not guarantee a more exploratory recommendation.")
 
     bullets_slide(prs, "Zoom out: spending a test budget", [
-        "Each print-and-test costs a machine slot, a test engineer hour, and days of queue. The class gets two ground-truth queries — answered by the frozen staff model, cheap because the prior campaign already paid for that information — and each group gets one real print.",
+        "Each print-and-test costs a machine slot, a test engineer hour, and days of queue. The class gets two pieces of ground-truth data from earlier tests through the frozen staff model, and each group gets one real print.",
         "Optimal experimental design is the batch version of the acquisition question: given N tests, which set teaches the most or finds the best fastest?",
         "Choosing the next test is the engineering decision.",
     ], size=21)
 
-    image_slide(prs, "Physics-informed GP: the two tracks meet", "figures/gif_pigp_vs_gp.gif",
-                caption="Plain GP sees only (b, H_web). Submission 1 lane C also sees log(P_phys) and P_LTB/P_bend from the calibrated three-branch capacity.",
-                source="Features sharpen the fit where their physics is useful; the separation branch carries one calibrated tau_i for an interface strength that scatters between sessions.  (animated in slideshow)")
+    image_slide(prs, "Physics-informed GP: the two tracks meet", "figures/fig_decision_map_4panel.png",
+                caption="A vanilla GP sees geometry only. A physics-informed GP can also receive signals from the calibrated capacity equations.",
+                source="Submission 1 compares both approaches rather than assuming either one must win.")
 
-    bullets_slide(prs, "Two decisions are yours; the rest are stress tests", [
+    bullets_slide(prs, "Decide first; run sensitivity checks afterward", [
         "You will meet six modeling \"knobs\" in Submission 1. Do not treat them as six equal choices.",
-        ("You own two decisions: the lane — how physics and data combine into one model — and the risk posture — how hard to chase predicted performance versus uncertainty.", 1),
-        ("The rest — kernel, noise, target scale — are stress tests. After you pick coordinates, swap the kernel and refit at 1% / 3% / 10% noise, and see whether your pick survives.", 1),
-        "The strong conclusion is not \"we chose RBF and 3%.\" It is: \"our exact optimum moves under reasonable assumptions, but every defensible model points at this neighborhood\" — or, just as strong: \"the recommendation is unstable, so we bought information instead of chasing the current maximum.\"",
+        ("Students decide: how physics enters the model and the risk posture — how predicted performance and uncertainty affect the choice.", 1),
+        ("Students check afterward: kernel, noise, and target-scale sensitivity.", 1),
+        "If reasonable assumptions move the recommendation, report that instability. If they point to the same neighborhood, report local robustness. An unstable result can justify using a test to reduce uncertainty.",
     ], size=19)
 
-    image_slide(prs, "The decision map: put both models on the same axes", "figures/fig_decision_map_4panel.png",
-                caption="Calibrated physics (with mode boundaries), GP posterior median, their disagreement, and epistemic sigma — tested beams on every panel. Submission 1 builds this with your knobs.",
+    image_slide(prs, "First compare what physics and the GP predict", "figures/fig_decision_map_4panel.png",
+                caption="The top row compares calibrated physics and the GP posterior median on the same design axes.",
+                max_h=4.5)
+    image_slide(prs, "Then inspect disagreement and epistemic uncertainty", "figures/fig_decision_map_4panel.png",
+                caption="The bottom row shows where the models disagree and where epistemic uncertainty remains large.",
                 max_h=4.5)
 
     bullets_slide(prs, "The activity from here", [
         ("Pre-lab 2: fit the GP, write MUI (and EI), work the noise assumption, find the GP-recommended beam.", 1),
-        ("Two queries: the class equation design and the class GP design go to the ground truth model — the same two beams for everyone. Only two.", 1),
+        ("Two class results: add ground-truth data from earlier tests for the equation design and the GP design — the same two beams for everyone.", 1),
         ("Submission 1: combine physics, GP, and the two new points; pick the beam you will print; defend it in the memo.", 1),
         ("Print, test, reflect, redesign: Submission 2 folds your own test result back into the model and asks what it changes.", 1),
     ], size=21)
@@ -409,7 +408,7 @@ def build_lecture2():
         ("write both MUI and EI,", 1),
         ("refit under 1% / 3% / 10% noise and note what moves,", 1),
         ("record the locked class design: b = 1.00 mm, H_web = 13.39 mm, posterior median 36.7 N/g.", 1),
-        "That beam is the class's second ground-truth query. Bring your rationale, not just the number.",
+        "That beam is the class's second ground-truth data point from earlier tests. Bring your rationale, not just the number.",
     ], size=20)
 
     out = os.path.join(HERE, "ME323_Module1_Lecture2.pptx")

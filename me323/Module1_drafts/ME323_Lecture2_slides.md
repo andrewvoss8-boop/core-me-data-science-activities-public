@@ -15,13 +15,13 @@ Today: a model that learns from sparse data and tells you how much it does not k
 
 ---
 
-## Where Pre-lab 1 left you
+## The equations overpredicted a strong beam
 
-- You coded three capacity branches — flexural yield, junction shear-flow separation, LTB — calibrated $(\sigma_y, k, \tau_i)$, and took the minimum: one capacity number per design.
-- The parity plot showed where that number holds and where it misses.
-- Your optimizer picked **b = 1.10, H_web = 13.25 mm**: predicted 48.7 N/g. Staff queried the **ground truth model** — a frozen model fit to a prior campaign of real bend tests, standing in for the testing machine — and it returned 475.7 N = 37.48 N/g on the estimated-mass basis. At that geometry all three mode capacities tie within ~1%, so the "LTB" proxy label is a knife-edge call.
+- The three calibrated capacity equations selected **b = 1.10 mm, H_web = 13.25 mm** and predicted **48.7 N/g**.
+- Ground-truth data from earlier tests gave **475.7 N = 37.48 N/g**, about 23% below the equation prediction.
+- All three modeled capacities tie within about 1% there, so the design sits on a mode boundary.
 
-The physics gave you a *point estimate* sitting on a mode boundary, the region where you trust it least. Today's tool adds what is missing: a statement of confidence.
+The equations found a strong beam, but overpredicted its performance. Today's tool adds a statement of confidence to the point estimate.
 
 ---
 
@@ -46,15 +46,17 @@ $$\text{posterior} \propto \text{likelihood}\times\text{prior}$$
 
 You start with a belief about beam strength. You test a beam. You update the belief.
 
-Bayesian thinking: carry a **distribution** over the unknown strength surface, not a single guess. Every slide that follows is this line, applied to beams.
+**Prior:** belief before the test. **Likelihood:** compatibility with the result. **Posterior:** belief after the test.
+
+Bayesian thinking carries a **distribution** over unknown beam strength, not a single guess. Every slide that follows applies this line to beams.
 
 ---
 
 ## A Gaussian is a belief about one beam
 
-![height:420px](figures/fig_gauss_strength.png)
+![height:420px](figures/fig_gauss_strength_repeats.png)
 
-This is exactly ME 239's [fitting Normals to data](https://purduemechanicalengineering.github.io/me-239-intro-to-data-science/lecture12/example-fitting-normals.html) — mean, variance, `st.norm` — done on strength; Pre-lab 2's warm-up replays it on these four beams. Where does the 3% come from? Repeat prints of one design — four beams at (1.3, 12.8) spanned 548.6 to 566.1 N. Pooled over every repeated geometry the scatter runs ≈4.4%, with session-to-session and printer-to-printer structure inside it; the class fixes 3% as a stated working value.
+These are the four repeat tests used in Pre-lab 2: mean 558.2 N and fitted scatter 7.6 N, or about 1.4%. Pooled campaign repeats give about 4.4% with session/printer structure. The class uses 3% as a working assumption and checks whether that choice changes the recommendation.
 
 ---
 
@@ -74,11 +76,11 @@ Measure beam A and the joint Gaussian *conditions*: the belief about beam B shif
 
 ---
 
-## The leap: a function is a long Gaussian vector
+## A GP links predictions across many designs
 
 ![height:400px](figures/gif_mvn_to_gp.gif)
 
-Strength at 2 designs: a 2D Gaussian. At 120 designs: a 120-dimensional Gaussian. Connect the dots and the vector *is* a function. A **kernel** fills in the covariances: nearby beams correlate, distant ones do not.
+The same joint-Gaussian update can cover 2 designs or 120. A **kernel** fills in the covariances so a test influences nearby designs more than distant ones.
 
 ---
 
@@ -90,13 +92,11 @@ Before data, the kernel proposes candidate strength curves. Each test kills the 
 
 ---
 
-## Watch it learn, one beam at a time
+## Each test reshapes nearby predictions
 
-![height:430px](figures/gif_gp_learning_beams.gif)
+![height:430px](figures/fig_gp_current_campaign_slice.png)
 
-*(Earlier beam campaign, span-200 geometry; the concept is what matters. This animation gets rebuilt from the new 44-beam dataset when testing finishes.)*
-
-The band collapses where beams land and stays wide where nothing has been tested. The equations never gave you that second part.
+Current class-campaign data on a thin-web slice. The band narrows near tested beams and stays wide where the model has less support. The equations never gave you that second part.
 
 ---
 
@@ -108,18 +108,18 @@ The length scale answers: how far does one test's influence reach? Too short and
 
 ---
 
-## So is the noise
+## Noise changes both the fit and its uncertainty
 
-![height:360px](figures/fig_noise_fits.png)
+![height:360px](figures/fig_noise_uncertainty_shared_scales.png)
 
-We assume 3% as the class working value. Pre-lab 2 refits at 1%, 3%, and 10% as a sensitivity check. The 1% fit moves to (1.58, 14.88), while the 3% and 10% fits pick (1.00, 13.39). The recommendation is assumption-sensitive.
+Pre-lab 2 refits at 1%, 3%, and 10% using shared color scales so the maps can be compared directly. The 1% fit recommends (1.58, 14.88); the 3% and 10% fits recommend (1.00, 13.39). The recommendation is assumption-sensitive.
 
 ---
 
 ## Epistemic and aleatory uncertainty do different jobs
 
-- **Epistemic uncertainty** is uncertainty about the latent response surface because tests are sparse. Informative new beams can reduce it.
-- **Aleatory uncertainty** is print-to-print and test-to-test scatter at a fixed nominal design. Another location does not remove it.
+- **Epistemic uncertainty:** uncertainty about the underlying average trend because tests are sparse. An informative new beam can reduce it.
+- **Aleatory uncertainty:** print-to-print and test-to-test scatter at one nominal design. Testing another location does not remove it.
 - For one future observation in log space:
 
 $$\sigma_\text{total}=\sqrt{\sigma_\text{epi}^2+r^2},\qquad r=0.03$$
@@ -128,13 +128,15 @@ MUI and EI use $\sigma_\text{epi}$ because they value learnable uncertainty. A r
 
 ---
 
-## Explore vs exploit
+## One dial balances performance and uncertainty
 
 ![height:420px](figures/fig_explore_exploit.png)
 
-Exploit: test where the posterior median is highest. Explore: test where epistemic uncertainty is widest. **MUI** (maximum upper interval) makes the tradeoff a dial in latent log space:
+**MUI** (maximum upper interval) is an acquisition function:
 
 $$a(x)=\mu(x)+\psi\,\sigma(x)$$
+
+$a(x)$ = score for design $x$; $\mu(x)$ = predicted log(str/w); $\sigma(x)$ = epistemic uncertainty; $\psi$ = how strongly uncertainty affects the choice. At $\psi=0$, MUI selects the highest posterior median.
 
 ---
 
@@ -142,25 +144,21 @@ $$a(x)=\mu(x)+\psi\,\sigma(x)$$
 
 ![height:430px](figures/gif_bo_mui.gif)
 
-Fit → pick the acquisition argmax → test → refit. Watch it probe the thin-web corner once, learn the surface is worse than it looks there, and settle on the real peak. Seven tests, no gradient, no formula for the dip.
+Fit → evaluate the acquisition function → choose the design with the highest score → test → refit. The example probes the thin-web corner, learns that region is worse than expected, and settles near the peak.
 
 ---
 
-## Expected Improvement, the other dial
+## EI weighs the chance and size of a win
 
-**EI** asks: by how much would a new test *beat the best beam so far*, on average?
+![height:400px](figures/fig_mui_ei_current.png)
 
-- accounts for both latent mean $\mu$ and epistemic uncertainty $\sigma$, like MUI,
-- but weighs *improvement*, so it stops caring about regions that cannot win,
-- and it has its own dial, $\xi$: an improvement threshold. $\xi=0$ lets the probabilities trade explore against exploit on their own; larger $\xi$ counts only wins that clear the incumbent by that margin, pushing the pick toward uncertain regions.
-
-MUI and EI can point at different next beams. The choice encodes your appetite for risk; Pre-lab 2 has you code both.
+EI asks how much a new test would beat the best tested beam so far, on average. Its $\xi$ setting requires a larger win before improvement counts. Increasing $\xi$ often favors less-certain regions, but does not guarantee a more exploratory recommendation. MUI and EI can recommend different beams because they encode risk appetite differently.
 
 ---
 
 ## Zoom out: spending a test budget
 
-Each print-and-test costs a machine slot, a test engineer hour, and days of queue. The class gets **two ground-truth queries** — answered by the frozen staff model, cheap because the prior campaign already paid for that information — and each group gets **one real print**.
+Each print-and-test costs a machine slot, a test engineer hour, and days of queue. The class gets **two pieces of ground-truth data from earlier tests** through the frozen staff model, and each group gets **one real print**.
 
 Optimal experimental design is the batch version of the acquisition question: given N tests, which set teaches the most or finds the best fastest? Choosing the next test *is* the engineering decision.
 
@@ -168,36 +166,42 @@ Optimal experimental design is the batch version of the acquisition question: gi
 
 ## Physics-informed GP: the two tracks meet
 
-![height:400px](figures/gif_pigp_vs_gp.gif)
+![height:400px](figures/fig_decision_map_4panel.png)
 
-*(Earlier campaign data; rebuilt with the new dataset when testing finishes.)*
-
-The plain GP sees only `(b, H_web)`. Submission 1 lane C also sees `log(P_phys)` and `P_LTB/P_bend`, where `P_phys` is the calibrated three-branch capacity (bend, separation, LTB). The features sharpen the fit where their physics is useful and can mislead where it is blind — the separation branch carries one calibrated $\tau_i$ for an interface strength that scatters between print sessions. Deciding which region you are in is your job, not the model's.
+A vanilla GP sees geometry only. A physics-informed GP can also receive signals computed from the calibrated capacity equations. Those signals may help where the equations capture the governing behavior and may mislead where they omit a mechanism. Submission 1 compares both approaches rather than assuming either one must win.
 
 ---
 
-## Two decisions are yours; the rest are stress tests
+## Decide first; run sensitivity checks afterward
 
 You will meet six modeling "knobs" in Submission 1. Do not treat them as six equal choices.
 
-- **You own two decisions:** the **lane** — how physics and data combine into one model — and the **risk posture** — how hard to chase predicted performance versus uncertainty.
-- **The rest — kernel, noise, target scale — are stress tests.** After you pick coordinates, swap the kernel and refit at 1% / 3% / 10% noise, and see whether your pick survives.
-- The strong conclusion is not "we chose RBF and 3%." It is: *"our exact optimum moves under reasonable assumptions, but every defensible model points at this neighborhood"* — or, just as strong: *"the recommendation is unstable, so we bought information instead of chasing the current maximum."*
+- **Students decide:** how physics enters the model and the **risk posture** — how predicted performance and uncertainty affect the choice.
+- **Students check afterward:** kernel, noise, and target-scale sensitivity.
+- If reasonable assumptions move the recommendation, report that instability. If they point to the same neighborhood, report local robustness. An unstable result can justify using a test to reduce uncertainty.
 
 ---
 
-## The decision map: put both models on the same axes
+## First compare what physics and the GP predict
 
 ![height:420px](figures/fig_decision_map_4panel.png)
 
-Calibrated physics (with mode boundaries), GP posterior median, their disagreement, and epistemic sigma — tested beams on every panel. Submission 1 builds this with *your* knobs; read your candidate against all four before you commit.
+The top row puts calibrated physics and the GP posterior median on the same design axes. White circles are tested beams; the black lines are physics mode boundaries. Compare the predicted neighborhoods before looking only at one optimum.
+
+---
+
+## Then inspect disagreement and epistemic uncertainty
+
+![height:420px](figures/fig_decision_map_4panel.png)
+
+The bottom row shows where physics and the GP disagree and where epistemic uncertainty remains large. Read a candidate against both maps before committing.
 
 ---
 
 ## The activity from here
 
 1. **Pre-lab 2**: fit the GP, write MUI (and EI), work the noise assumption, find the GP-recommended beam.
-2. **Two queries**: the class equation design and the class GP design go to the ground truth model — the same two beams for everyone. Only two.
+2. **Two class results**: add ground-truth data from earlier tests for the equation design and the GP design — the same two beams for everyone.
 3. **Submission 1**: combine physics, GP, and the two new points; pick the beam you will print; defend it in the memo.
 4. Print, test, reflect, redesign: Submission 2 folds your own test result back into the model and asks what it changes.
 
@@ -213,4 +217,4 @@ In `ME323_Module1_Prelab2_ML`:
 - refit under 1% / 3% / 10% noise and note what moves,
 - record the locked class design: **b = 1.00 mm, H_web = 13.39 mm**, posterior median 36.7 N/g.
 
-That beam is the class's second ground-truth query. Bring your rationale, not just the number.
+That beam is the class's second ground-truth data point from earlier tests. Bring your rationale, not just the number.
