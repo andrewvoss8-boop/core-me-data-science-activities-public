@@ -4,12 +4,12 @@ title: "ME 323 Module 1 — Lecture 1: Beam Failure Modes"
 paginate: true
 ---
 
-# Designing a Beam Under Messy Physics
+# Designing a Beam Under "Messy" Physics
 ### ME 323 Module 1, Lecture 1
 
-Pick a 3D-printed I-beam that carries the most load per gram.
+Design a 3D-printed I-beam that carries the most load per gram.
 
-The equations give you a start, not the answer.
+Here, "messy" means uncertain properties, interacting failure modes, and test-to-test variation.
 
 <!-- PLACEHOLDER (new campaign): hero photo of a printed I-beam on the three-point-bend fixture, load head touching the top flange. -->
 
@@ -20,7 +20,7 @@ The equations give you a start, not the answer.
 - Fixed: total height 18 mm, flange width 10 mm, test span 150 mm, printed length 172 mm, PLA.
 - You choose: **web thickness `b`** and **web height `H_web`** (which sets flange thickness).
 - Goal: maximize **strength-to-weight**.
-- Constraint you can't dodge: each print-and-test is slow and expensive, so you get very few.
+- Constraint you can't dodge: each print-and-test is slow and expensive, so you must make decisions with limited data.
 
 ![height:230px](figures/fig_isection.png)
 
@@ -33,8 +33,7 @@ Three things stand between you and a clean optimization:
 1. Printed beams can **fracture along the layer lines**: the flange peels off the web at a printed interface whose strength appears in no handbook.
 2. **Lateral-torsional buckling depends on the fixture**, not just the beam.
 3. The **failure modes overlap**. Real beams fail in mixed, progressive ways.
-
-We will price the layer-line mode with one calibrated number — but that number drifts with print session and support condition, and the other two problems remain. The equations narrow the problem without solving it.
+4. **Material properties and measured strengths vary** from print to print and test to test.
 
 <!-- PLACEHOLDER (new campaign): side-by-side photos of three failed beams — one yielded and sagging, one with the web split along a layer line, one tipped sideways. Caption each with its (b, H_web). -->
 
@@ -43,10 +42,12 @@ We will price the layer-line mode with one calibrated number — but that number
 ## Three modeled capacity branches
 
 - **Bending**: the beam yields in flexure.
-- **Flange-web separation**: the shear flow at the printed junction exceeds the layer-line bond strength.
+- **Flange-web separation**: shear at the printed junction exceeds the layer-line bond strength.
 - **Lateral-torsional buckling (LTB)**: the beam tips over sideways.
 
-The class capacity is the plain minimum of the three. The resulting dominant-mode label is a model proxy, not proof of what the broken beam will look like.
+The class model takes the minimum of these three capacities. Its governing-mode label is a prediction, not proof of the observed fracture mechanism.
+
+**The model is incomplete:** modes can interact, other mechanisms may contribute, and tests vary.
 
 ---
 
@@ -84,209 +85,310 @@ Three sections of equal area. Relocating that same material to the flanges multi
 
 The I-beam logic says: thinner web, taller section, mass pushed outward.
 
-Push too far and you wake the **other two modes**:
+Push too far and you get the **other two modes**:
 
-- a flange-web junction too thin to carry the shear flow — the printed layer-line bond lets go,
-- a section too tall and narrow, which **tips over** (LTB) before it ever yields.
+- a thin, short web can overload the printed flange-web junction,
+- a tall, narrow section can **tip over** (LTB) before it yields.
 
-The efficient shape and the failure modes pull against each other; resolving that tension is the design problem.
-
----
-
-## Shear in a beam: the check you already know
-
-In each half-span, $V=P/2$. The quick estimate says the web carries it all, $\tau_{avg}\approx V/(b\,H_\text{web})$. The full formula prices the longitudinal shear on **any** horizontal plane of the section:
-
-$$\tau(y)=\frac{V\,Q(y)}{I_x\,t(y)}$$
-
-- $Q(y)$: first moment of the area *beyond* the plane; $t(y)$: width at the plane. Peaks at the neutral axis ($\tfrac32 V/A$ for a rectangle).
-- The textbook check — $\tau$ at the neutral axis against $\tau_y=\sigma_y/\sqrt3=43.9$ MPa — clears by ~3×: at $(b,H_\text{web})=(2,12)$ the web would not rupture until ≈2495 N, but bending yields the flange at 835 N.
-- Verdict: for a beam made of **one material**, shear never governs here. Ours is not one material.
+The efficient shape and the failure modes pull against each other. The design problem is to balance that tradeoff while accounting for uncertain model parameters and test variability.
 
 ---
 
-## Flange-web separation: shear flow at the printed junction
+## One shear equation; choose the plane you want to check
+
+$$\tau=\frac{VQ}{I_x t}$$
+
+- $V$: internal shear force at the beam section. In either half of our three-point-bend span, $V=P/2$.
+- $I_x$: second moment of area of the entire cross-section about the neutral axis.
+- $Q$: first moment of the area above (or below) the horizontal plane being checked.
+- $t$: width of material along that plane.
+
+**Change the plane and $Q$ and $t$ change. The highest-stress plane need not be the weakest plane.**
+
+---
+
+## Q comes from area; t comes from the cut width
 
 ![height:340px](figures/fig_shear_web.png)
 
-Every observed "shear-type" failure in the campaign is a flange peeling off the web — a fracture running *along* the printed flange-web interface. Not the most-stressed plane; the **weakest** one. Slide the same $VQ/(I_x t)$ to the junction — $Q$ becomes the flange's first moment, $t$ the joint width — and it becomes the classic built-up-beam glue-line **shear flow** check ($V=P/2$):
+For the symmetric rectangular I-section, let $B$ be flange width, $t_f$ flange thickness, $H_\text{web}$ clear web height, and $b$ web thickness. For any horizontal plane,
 
-$$\tau_j=\frac{V\,Q_f}{I_x\,t_w},\qquad Q_f=B\,t_f\,\frac{H_\text{web}+t_f}{2}\qquad\Rightarrow\qquad P_\text{sep}=2\,\tau_i\,\frac{I_x\,t_w}{Q_f}$$
+$$Q=\int_{A'}y\,dA=\sum_i A_i\bar y_i,$$
 
-At the junction the stress is ~14% *lower* than at the neutral axis ($Q_f/Q_{NA}\approx0.86$ at (2,12)): this plane fails first because it is weaker, not because it is more stressed.
+where $A'$ is the area above the plane and $y$ is measured from the neutral axis. The denominator width $t$ is the local section width intersected by that plane.
+
+**Flange-web junction:** $A'$ contains the top flange only, so
+
+$$Q_j=(Bt_f)\left(\frac{H_\text{web}}{2}+\frac{t_f}{2}\right),
+\qquad t_j=b.$$
+
+**Neutral axis:** $A'$ contains the top flange plus the upper half of the web, so
+
+$$Q_\text{NA}=Q_j+
+\left(\frac{bH_\text{web}}{2}\right)\left(\frac{H_\text{web}}{4}\right)
+=Q_j+\frac{bH_\text{web}^2}{8},
+\qquad t_\text{NA}=b.$$
+
+Thus both planes use the same local width for this geometry, but $Q$ changes because the area above the plane changes. For $(b,H_\text{web})=(2,12\text{ mm})$, $t_f=3$ mm, $Q_j=225$ mm$^3$, $Q_\text{NA}=261$ mm$^3$, and $\tau_j/\tau_\text{NA}=225/261=0.862$: the junction stress is 14% lower.
 
 ---
 
 ## What the separation check assumes
 
-The stress side is textbook — the same $VQ/(I_x t)$ you already knew, evaluated one plane up. The strength side is not textbook: $\tau_i$ is the bond strength **along the printed layer lines**, weaker than the bulk plastic, and no handbook lists it. Pre-lab 1 starts it at the bulk guess $\sigma_y/\sqrt3=43.9$ MPa and calibrates it from the test data — it lands near 18 MPa, and it drifts with print session and support condition.
-
-The check predicts a capacity trend on one candidate plane. It is a dominant-mode proxy, not a fracture diagnosis — real beams still blur modes and fail progressively.
+- **Stress model:** evaluate the beam-shear equation at the printed flange-web junction.
+- **Strength model:** $\tau_i$ is the bond strength along the printed layer lines, not the bulk-plastic strength. No handbook gives this joint property.
+- **Pre-lab calibration:** start from the bulk shear-yield estimate of 43.9 MPa, then infer $\tau_i$ from the beam tests. This campaign lands near 18 MPa; print session and support condition can move it.
+- **Claim boundary:** this check predicts a capacity trend for one candidate plane. It does not diagnose a fracture mechanism from a force-displacement trace, and real failures can mix modes.
 
 ---
 
-## Fracture vs yield, on the test machine
+## Trace shape tells you when load was lost—not why
 
 ![height:400px](figures/fig_brittle_traces.png)
 
-Same fixture, same material. The thin-web beams shed the load in one drop; the thicker webs plateau. No equation on the previous slides distinguishes these two endings.
+Thin webs can lose load abruptly; thicker webs can plateau or shed load gradually.
+
+**Claim boundary:** the curve describes the timing and style of load loss. Mechanism requires specimen and fixture observations too.
 
 ---
 
-## Lateral-torsional buckling: the idea
+## LTB starts from an elastic critical moment
 
-A tall, thin-flanged beam does not yield in place. It **rolls sideways and twists** at a load below its bending strength. A stability failure, not a strength one.
+$$
+M_{\mathrm{cr}}
+=
+C_1\frac{\pi^2 E I_y}{L_b^2}
+\left(\sqrt{R}-C_2z_g\right)
+$$
 
-The elastic critical moment (Timoshenko elastic-stability theory, in the Eurocode `C_1`/`C_2` closed form):
+- $M_{\mathrm{cr}}$ — elastic moment at which the idealized beam becomes laterally unstable.
+- $E$ — Young's modulus; $I_y$ — weak-axis second moment of area.
+- $L_b$ — effective unbraced length; $z_g$ — load height measured from the shear center.
+- $C_1$ and $C_2$ — dimensionless coefficients for the moment diagram and load-height effect.
 
-$$M_{cr}=C_1\frac{\pi^2 E I_y}{L_b^2}\Big[\sqrt{R}-C_2 z_g\Big]$$
-
-The next four slides open up every symbol in this equation, because this is the mode that decides your optimum and the one built on the most assumptions. You will not re-derive any of it: `P_LTB` arrives pre-coded in Pre-lab 1. The goal here is to read that code knowing what each symbol assumes.
-
-<!-- PLACEHOLDER (new campaign): 3-second clip or photo sequence of a tall thin-web beam tipping sideways under load. The old campaign logged one on video ("LTB after yield"); re-shoot on the module fixture. -->
-
----
-
-## The critical moment, term by term
-
-$$R=\frac{C_w}{I_y}+\frac{L_b^2\,GJ}{\pi^2 E I_y}+(C_2 z_g)^2$$
-
-The group under the root trades three effects against each other:
-
-- $C_w/I_y$ — **warping rigidity**: resistance to the flanges bending in opposite directions.
-- $L_b^2 GJ/(\pi^2 E I_y)$ — **St. Venant torsion**: the twisting stiffness of the open section.
-- $(C_2 z_g)^2$ — **load height**: loading the top flange is destabilizing, so it subtracts.
-
-$C_1=1.35$ (moment shape, central point load), $C_2=0.55$ (load-height factor).
+This predicts an elastic instability of an idealized beam; it is not an observed fracture label.
 
 ---
 
-## From critical moment to a load
+## Every term under the root is a squared length
 
-The beam cannot exceed its yield moment, so LTB is capped at yield:
+$$
+R
+=
+\frac{C_w}{I_y}
++
+\frac{L_b^2GJ}{\pi^2EI_y}
++
+\left(C_2z_g\right)^2
+$$
 
-$$M_y=\frac{\sigma_y I_x}{c}\qquad P_\text{LTB}=\frac{4\,\min(M_y,\,M_{cr})}{L}$$
+- $C_w/I_y$ is a warping length scale; $C_w$ has units m$^6$ and $I_y$ has units m$^4$.
+- The torsion term combines effective length, shear modulus $G$, and St. Venant torsional constant $J$.
+- The load-height term represents top-flange loading; its contribution is subtracted after the square root.
+- Dimensional check: $R$ is in m$^2$, the bracket in the critical-moment equation is in m, and $M_{\mathrm{cr}}$ is in N·m.
 
-- take the **smaller** of the elastic buckling moment and the yield moment,
-- convert moment to load with $M_\text{max}=PL/4$, so $P=4M/L$,
-- with $L_b=kL$ and $z_g=c=TH/2$ (load at the top surface).
-
-Below this line the beam tips; the min is a crude nod to inelastic buckling.
-
----
-
-## What feeds it: the section constants
-
-Three geometry terms from `section_props` in Pre-lab 1 carry the whole calc:
-
-$$I_y=\frac{H_\text{web}\,b^3}{12}+2\cdot\frac{t_f\,B^3}{12}\qquad C_w=\frac{I_y\,(H_\text{web}+t_f)^2}{4}$$
-
-$$J=\tfrac13\,\beta(b,H_\text{web})\,H_\text{web}\,b^3+\tfrac23\,\beta(t_f,B)\,B\,t_f^3,\qquad \beta(t,a)=1-0.63\tfrac{t}{a}+0.052\big(\tfrac{t}{a}\big)^5$$
-
-- `I_y`: weak-axis stiffness — small for narrow flanges, which is why tall thin beams tip.
-- `J`: St. Venant torsion, summed over web and flanges as thin rectangles.
-- `C_w`: warping constant, the flanges' resistance to counter-bending.
+Course values: $E=2.50$ GPa, $G=0.962$ GPa, $C_1=1.35$, and $C_2=0.55$.
 
 ---
 
-## The assumptions underneath
+## The course converts moment to load—and caps at yield
 
-The formula is exact for an idealized beam, and ours differs from it in four ways.
+$$
+\begin{aligned}
+M_y&=\frac{\sigma_y I_x}{c},
+&
+M_{\max}&=\frac{PL}{4},
+&
+L_b&=kL,
+&
+z_g&=c=\frac{T}{2},\\
+P_{\mathrm{LTB\ branch}}
+&=\frac{4}{L}\min\!\left(M_y,M_{\mathrm{cr}}\right).
+\end{aligned}
+$$
 
-- **Thin-walled open section.** `J` and `C_w` use thin-rectangle theory. With webs up to 7 mm against a 10 mm flange, "thin" is generous; `J` starts to drift.
-- **Timoshenko elastic stability.** `M_cr` is the classical torsional-flexural buckling load: linear-elastic, perfectly straight, no residual stress. A printed beam has all three imperfections.
-- **Warping torsion.** Open sections warp under twist; the `C_w` term assumes the ends are free to warp. The real fixture restrains them somewhat, which is exactly what `k` absorbs.
-- **Elastic, isotropic material.** $E=2.5$ GPa, $G=E/2.6$ (so $\nu=0.3$). Printed PLA is layered and anisotropic, not isotropic.
+- $\sigma_y$ — effective flexural yield strength; $I_x$ — strong-axis second moment; $c$ — neutral axis to the outer surface.
+- $P$ — center load; $L=150$ mm — support span. The moment relation assumes simply supported three-point bending.
+- $k$ sets effective length. For top-surface loading, $z_g=c=T/2=9$ mm.
 
-Each gap widens the error bar you should carry on the LTB capacity.
-
----
-
-## The one number that rules LTB: k
-
-$$L_b=kL\qquad\Rightarrow\qquad M_{cr}\ \propto\ \frac{1}{(kL)^2}$$
-
-- `k` is the **effective-length factor**: how far the beam can twist and bend sideways between whatever restrains it.
-- It is set by the **fixture** — how the ends grip, whether they can warp, where the load lands — **not by the beam**.
-- Textbook `k=1` is a simply-supported "fork" end free to warp; stiffer restraint drops `k` below 1.
-- The handbook starting value is **`k=0.33`**. Calibration on the class subset gives **`k=0.377`**, which sets the equation design. It absorbs the real end restraint; it was never derived.
-
-Because $M_{cr}\propto 1/k^2$, a small change in `k` swings the LTB load hard — and the calibrated equation optimum sits on a **bend–LTB knife edge** (the two capacities land within ~1% there), so it is the least trustworthy part of the map. **`k` does not transfer between fixtures — confirm it on ours before betting on that optimum.**
+The minimum is a pragmatic yield cap used by the class model—not a full inelastic-buckling theory.
 
 ---
 
-## LTB: what you must own, and what is background
+## Section geometry supplies $I_y$, $J$, and $C_w$
 
-You just saw $I_y$, $J$, $C_w$, warping, load height, and effective length. You are responsible for this much of it:
+$$
+\begin{aligned}
+t_f&=\frac{T-H_w}{2},
+&
+I_y&=\frac{H_wb^3}{12}+2\frac{t_fB^3}{12},\\
+J&=J_{\mathrm{rect}}(b,H_w)+2J_{\mathrm{rect}}(t_f,B),
+&
+C_w&=\frac{I_y(H_w+t_f)^2}{4},\\
+J_{\mathrm{rect}}(x,y)&=\frac{1}{3}\beta as^3,
+&
+\beta&=1-0.63\frac{s}{a}+0.052\left(\frac{s}{a}\right)^5,\\
+s&=\min(x,y),
+&
+a&=\max(x,y).
+\end{aligned}
+$$
 
-- **Yours:** what LTB *is* (a tall thin web tipping sideways before the material yields), *when* it competes (thin `b`, large `H_web`), what `k` means physically, and why a calibrated `k` does not transfer between fixtures.
-- **Yours:** reading the capacity plot — which branch governs where, and how much margin the runner-up has.
-- **Background:** deriving $I_y$, $J$, $C_w$, or the $M_{cr}$ formula. The code is supplied; you will never derive or re-implement it in this module.
+- Geometry: $b$ and $H_w$ are design variables; flange width $B=10$ mm and total height $T=18$ mm are fixed.
+- Properties: $I_y$ is weak-axis bending resistance, $J$ is St. Venant torsion, and $C_w$ is the warping constant.
+- Units: the code converts every dimension from mm to m before returning $I_y$ and $J$ in m$^4$ and $C_w$ in m$^6$.
 
-The test of understanding: *what happens to the LTB branch if the fixture braces the compression flange, and would you still trust the equation optimum?*
-
----
-
-## Which mode drives?
-
-For each beam, assign the dominant pure-mode proxy. Color a map of the design space by that label.
-
-![height:400px](figures/fig_failure_mode_map.png)
-
-Tall thin webs tip (LTB, green). Short thin webs are separation-limited (red): the junction shear flow beats the layer-line bond. The middle bends (blue).
-
----
-
-## Does the theory match the data?
-
-Pre-lab 1 answers this with your beam dataset: you compute each beam's predicted capacity and mode, then put predictions against measurements on a parity plot.
-
-Watch for two things:
-
-- points **below the line**: beams that broke before the equations said they would,
-- beams whose recorded failure looks nothing like the predicted mode.
-
-<!-- PLACEHOLDER (new campaign): parity plot (predicted capacity vs measured strength, colored by predicted mode) built from the 44-beam dataset once strength_N lands. -->
+The rectangular $\beta$ correction is retained for finite aspect ratio; interpretation is yours, while derivation remains background.
 
 ---
 
-## One assumption, two different beams
+## The LTB equation is conditional on five idealizations
 
-![height:420px](figures/fig_two_optima.png)
+- **Section geometry:** open, doubly symmetric, and thin-walled. The torsion approximation is least credible for the thickest webs.
+- **Elastic stability:** linear material, initially straight beam, and no residual stress; printed parts violate all three.
+- **Warping and supports:** end restraint is compressed into fitted $k$ rather than modeled from the fixture geometry.
+- **Material:** isotropic $E$ and $G$. Printed PLA is layered and direction-dependent; the model uses $E=2.50$ GPa and $G=0.962$ GPa.
+- **Loading:** central top-flange load represented by fixed $C_1$, $C_2$, and $z_g$.
 
-This illustration uses the handbook starting values ($k=0.33$, bulk $\tau_i$). The class calibration ($\sigma_y=66.8$ MPa, $k=0.377$, $\tau_i=16.8$ MPa) moves the exact equation optimum to $(b,H_\text{web})=(1.10,13.25)$.
-
----
-
-## Where this leaves us
-
-The equations are useful but partial:
-
-- they cannot tell a yield plateau from a one-drop fracture,
-- their LTB term rests on fixture assumptions,
-- the modes blur,
-- and we have only a few expensive tests.
-
-A data-driven model that carries its own uncertainty is built for this situation. **Next lecture: Gaussian Processes and Bayesian optimization.**
+**Consequence:** the LTB branch is a fixture-conditional capacity proxy with model uncertainty.
 
 ---
 
-## The loop this module runs
+## $k$ changes effective length—and enters $M_{\mathrm{cr}}$ twice
 
-![height:380px](figures/fig_workflow_end2end.png)
+$$
+\begin{aligned}
+L_b&=kL,\\
+M_{\mathrm{cr}}(k)
+&=
+C_1\frac{\pi^2EI_y}{(kL)^2}
+\left[
+\sqrt{
+\frac{C_w}{I_y}
++
+\frac{(kL)^2GJ}{\pi^2EI_y}
++
+(C_2z_g)^2
+}
+-C_2z_g
+\right].
+\end{aligned}
+$$
 
-**Physics says what should happen and where failure lives. The data model says what the tests support and where we're still uncertain. Your judgment decides what to build. The test says what we got wrong.** Every artifact in this module is one lap of that loop.
+- $k$ is a dimensionless effective-length factor for the fixture; lower $k$ means stronger restraint.
+- Handbook starting value: $0.33$. Fifteen-beam class fit: $0.377$.
+- This is **not a pure inverse-square law** because $kL$ also appears inside the square root.
+- At the equation design, changing $k$ from 0.33 to 0.377 lowers elastic $M_{\mathrm{cr}}$ from 28.6 to 23.1 N·m; the yield moment is 23.3 N·m.
+
+Because $k$ absorbs fixture behavior and omitted physics, it does not transfer automatically to another test setup.
 
 ---
 
-## Before next time: Pre-lab 1
+## What you must understand about the LTB branch
 
-In `ME323_Module1_Prelab1_FailureModes`:
+- **Recognize the mode:** tall, thin sections can roll sideways and twist before flexural yield.
+- **Read the design variables:** decreasing web thickness $b$ and increasing clear web height $H_w$ can make LTB more competitive.
+- **Interpret $k$ physically:** it summarizes effective restraint and is fixture-specific.
+- **Separate quantities:** $M_{\mathrm{cr}}$ is an elastic moment; the course LTB branch converts it to load and applies a yield cap.
+- **Read margins:** a near-tie between branches makes the single governing label fragile.
 
-- reduce four raw force–displacement traces to strength — including deciding what beam 9's "twisted off the test stand" peak really measures,
-- load the beam data, compute strength-to-weight,
-- code flexural yield and the junction shear-flow separation check (start $\tau_i$ at the bulk guess 43.9 MPa),
-- compare dominant-mode proxies with measured strengths and failure notes, then calibrate $(\sigma_y, k, \tau_i)$,
-- optimize strength-to-weight.
+**Background, not assigned:** deriving $I_y$, $J$, $C_w$, or the $C_1$/$C_2$ closed form.
 
-The design you find there becomes one of the class's two ground-truth queries later — the pre-lab explains how those queries work. Bring questions.
+---
+
+## Model choices reshape the LTB branch
+
+![height:400px](figures/fig_ltb_model_comparison.png)
+
+- **Axes:** $b$ is web thickness and $H_w$ is clear web height, both in mm.
+- **Left:** stripped-down elastic LTB.
+- **Center:** current yield-capped class branch.
+- **Right:** current divided by basic.
+
+The correction is design-dependent; it cannot be replaced by one constant scale factor.
+
+---
+
+## The parity plot is an in-sample diagnostic
+
+![height:360px](figures/fig_calibrated_parity_15beams.png)
+
+- **How to read it:** $x$ is predicted load, $y$ is measured load, and the dashed line is equality.
+- Color encodes the predicted branch; marker shape encodes the observed specimen or fixture note class.
+- **Fitted parameters:** $\sigma_y=66.83$ MPa, $k=0.377$, and $\tau_i=16.76$ MPa.
+
+**Claim ceiling:** the same 15 beams set the parameters and appear in the plot. This shows fitted capacity, not held-out generalization.
+
+---
+
+## Calibrate parameters first; then freeze them for design
+
+$$
+\begin{aligned}
+\boldsymbol{\theta}
+&=(\sigma_y,k,\tau_i),\\
+P_{\mathrm{cap}}(b,H_w;\boldsymbol{\theta})
+&=
+\min\!\left[
+P_{\mathrm{bend}}(\sigma_y),
+P_{\mathrm{sep}}(\tau_i),
+P_{\mathrm{LTB}}(\sigma_y,k)
+\right],\\
+\widehat{\boldsymbol{\theta}}
+&=
+\arg\min_{\boldsymbol{\theta}}
+\frac{1}{15}\sum_{i=1}^{15}
+\left[
+\log P_{\mathrm{cap},i}(\boldsymbol{\theta})
+-\log P_{\mathrm{meas},i}
+\right]^2,\\
+(b^\star,H_w^\star)
+&=
+\arg\max_{(b,H_w)}
+\frac{P_{\mathrm{cap}}(b,H_w;\widehat{\boldsymbol{\theta}})}
+{m_{\mathrm{est}}(b,H_w)}.
+\end{aligned}
+$$
+
+- $\sigma_y$ controls bending and the yield cap, $k$ controls effective length, and $\tau_i$ controls interface separation.
+- The 15-beam fit gives 66.83 MPa, 0.377, and 16.76 MPa. This same-data fit is not a held-out score.
+- With those values frozen, the 0.05 mm grid search returns $b=1.10$ mm and $H_w=13.25$ mm at 48.7 N/g predicted strength-to-estimated-mass.
+
+---
+
+## The physics model is useful because its limits are explicit
+
+- **It does provide** a capacity estimate and a dominant-branch proxy for each design.
+- **It does not provide** a unique fracture diagnosis from a force–displacement trace.
+- **Its calibration is conditional** on this fixture, print campaign, and 15-beam dataset.
+- **Its labels are least stable** near intersections of capacity branches—the region an optimizer often favors.
+
+**Next lecture:** model the remaining discrepancy and uncertainty with a Gaussian Process; do not erase the physics.
+
+---
+
+## The module adds evidence one decision at a time
+
+![height:380px](figures/fig_workflow_current.png)
+
+- Fifteen measured beams calibrate the class physics model.
+- The frozen equation query at $(b,H_w)=(1.10,13.25)$ returns 475.7 N.
+- The frozen GP query at $(b,H_w)=(1.00,13.39)$ returns 445.8 N.
+- Your group design is the new print-and-bend observation; the models are refit after that result.
+
+Beams 16 and 17 are frozen model responses, not new physical tests.
+
+---
+
+## Pre-lab 1: turn equations into a testable model
+
+Notebook: **ME323 Module 1 — Pre-lab 1, Failure Modes**
+
+- reduce four force–displacement traces to strength, including the beam 9 fixture/twist event;
+- code and unit-check the bending, printed-junction separation, and yield-capped LTB branches;
+- treat 43.9 MPa as the starting bulk ceiling for $\tau_i$—not a measured interface strength;
+- calibrate $\sigma_y$ (effective flexural strength), $k$ (fixture effective-length factor), and $\tau_i$ (printed-interface shear strength);
+- compare predicted and measured loads while keeping predicted branches separate from observed notes;
+- freeze the fitted parameters, then optimize predicted strength divided by estimated mass.
+
+Bring one question about a variable, one about an assumption, and one about a mismatch.
